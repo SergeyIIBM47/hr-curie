@@ -1,0 +1,132 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  EMPLOYEE
+}
+
+enum LeaveType {
+  SICK_LEAVE
+  DAY_OFF
+  VACATION
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  role         Role      @default(EMPLOYEE)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  employee      Employee?
+  leaveRequests LeaveRequest[]
+  meetings      MeetingParticipant[]
+
+  @@map("users")
+}
+
+model Employee {
+  id               String         @id @default(cuid())
+  userId           String         @unique @map("user_id")
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // --- Required ---
+  firstName        String         @map("first_name")
+  lastName         String         @map("last_name")
+  employmentTypeId String         @map("employment_type_id")
+  employmentType   EmploymentType @relation(fields: [employmentTypeId], references: [id])
+  workEmail        String         @unique @map("work_email")
+  dateOfBirth      DateTime       @map("date_of_birth") @db.Date
+  actualResidence  String         @map("actual_residence")
+  startYear        Int            @map("start_year")
+
+  // --- Optional ---
+  phone           String?
+  position        String?
+  department      String?
+  location        String?
+  healthInsurance String?  @map("health_insurance")
+  education       String?
+  certifications  String?
+  linkedinUrl     String?  @map("linkedin_url")
+  tshirtSize      String?  @map("tshirt_size")
+  avatarUrl       String?  @map("avatar_url")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([lastName])
+  @@index([department])
+  @@map("employees")
+}
+
+model EmploymentType {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  employees Employee[]
+
+  @@map("employment_types")
+}
+
+model LeaveRequest {
+  id         String      @id @default(cuid())
+  userId     String      @map("user_id")
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       LeaveType
+  status     LeaveStatus @default(PENDING)
+  startDate  DateTime    @map("start_date") @db.Date
+  endDate    DateTime    @map("end_date") @db.Date
+  reason     String?
+  reviewedBy String?     @map("reviewed_by")
+  reviewedAt DateTime?   @map("reviewed_at")
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([status])
+  @@map("leave_requests")
+}
+
+model Meeting {
+  id              String               @id @default(cuid())
+  title           String
+  type            String
+  scheduledAt     DateTime             @map("scheduled_at")
+  durationMinutes Int                  @default(30) @map("duration_minutes")
+  googleEventId   String?              @map("google_event_id")
+  notes           String?
+  createdBy       String               @map("created_by")
+  createdAt       DateTime             @default(now()) @map("created_at")
+  updatedAt       DateTime             @updatedAt @map("updated_at")
+
+  participants MeetingParticipant[]
+
+  @@index([scheduledAt])
+  @@map("meetings")
+}
+
+model MeetingParticipant {
+  id        String  @id @default(cuid())
+  meetingId String  @map("meeting_id")
+  meeting   Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  userId    String  @map("user_id")
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([meetingId, userId])
+  @@map("meeting_participants")
+}
