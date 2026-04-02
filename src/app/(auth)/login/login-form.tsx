@@ -3,12 +3,17 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { loginSchema } from "@/lib/validations/auth";
 import type { z } from "zod";
 
 type LoginValues = z.infer<typeof loginSchema>;
+
+async function getCsrfToken(): Promise<string> {
+  const res = await fetch("/api/auth/csrf");
+  const data = await res.json();
+  return data.csrfToken;
+}
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -27,27 +32,52 @@ export function LoginForm() {
     console.log("[LOGIN] Submitting login for:", data.email);
 
     try {
-      const result = await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-        callbackUrl: "/",
+      const csrfToken = await getCsrfToken();
+      console.log("[LOGIN] Got CSRF token:", csrfToken ? "yes" : "no");
+
+      const res = await fetch("/api/auth/callback/credentials", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          csrfToken,
+          email: data.email,
+          password: data.password,
+          callbackUrl: "/",
+        }),
+        redirect: "manual",
       });
 
-      console.log("[LOGIN] signIn result:", JSON.stringify(result, null, 2));
+      console.log("[LOGIN] Response status:", res.status, "type:", res.type);
+      console.log("[LOGIN] Response headers location:", res.headers.get("location"));
 
-      if (result?.error) {
-        console.error("[LOGIN] signIn error:", result.error, "status:", result.status, "url:", result.url);
-        setError(`Login failed: ${result.error} (status: ${result.status})`);
-      } else if (result?.url) {
-        console.log("[LOGIN] Redirecting to:", result.url);
-        window.location.href = result.url;
-      } else {
-        console.error("[LOGIN] No error but no URL either:", result);
-        setError("Unexpected response from server");
+      // status 0 + opaqueredirect = fetch with redirect:"manual" captured a redirect
+      if (res.status === 0 || res.type === "opaqueredirect") {
+        // Successful login — session cookie is set, navigate to dashboard
+        console.log("[LOGIN] Redirect captured (success), navigating to /");
+        window.location.href = "/";
+        return;
       }
+
+      if (res.ok) {
+        // 200 with redirect:"manual" — check if it's an error page
+        const url = new URL(res.url);
+        if (url.pathname.includes("/error") || url.searchParams.has("error")) {
+          const errorCode = url.searchParams.get("error") ?? "Unknown";
+          console.error("[LOGIN] Auth error:", errorCode);
+          setError(`Authentication error: ${errorCode}`);
+          return;
+        }
+        console.log("[LOGIN] OK response, navigating to /");
+        window.location.href = "/";
+        return;
+      }
+
+      // Non-OK, non-redirect — unexpected
+      const body = await res.text().catch(() => "(no body)");
+      console.error("[LOGIN] Unexpected response:", res.status, body);
+      setError(`Server error (${res.status})`);
     } catch (err) {
-      console.error("[LOGIN] Exception during signIn:", err);
+      console.error("[LOGIN] Exception during login:", err);
       setError(`Exception: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
