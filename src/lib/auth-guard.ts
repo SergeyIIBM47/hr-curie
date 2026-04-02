@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
+import type { Session } from "next-auth";
 import type { Role } from "@prisma/client";
 
 export async function requireAuth(requiredRole?: Role) {
@@ -10,7 +11,13 @@ export async function requireAuth(requiredRole?: Role) {
   return session;
 }
 
-export async function requireApiAuth(requiredRole?: Role) {
+type ApiAuthResult =
+  | { error: NextResponse; session?: never }
+  | { error?: never; session: Session };
+
+export async function requireApiAuth(
+  requiredRole?: Role,
+): Promise<ApiAuthResult> {
   const session = await auth();
   if (!session?.user) {
     return {
