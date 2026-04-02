@@ -2,19 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { requireApiAuth } from "@/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
+import { employeeListSelect } from "@/lib/employee-select";
 import { createEmployeeSchema } from "@/lib/validations/employee";
-
-const employeeSelect = {
-  id: true,
-  firstName: true,
-  lastName: true,
-  workEmail: true,
-  position: true,
-  department: true,
-  avatarUrl: true,
-  employmentType: { select: { name: true } },
-  user: { select: { id: true, role: true } },
-} as const;
 
 export async function GET(request: NextRequest) {
   const { error, session } = await requireApiAuth();
@@ -23,7 +12,7 @@ export async function GET(request: NextRequest) {
   if (session.user.role !== "ADMIN") {
     const employee = await prisma.employee.findUnique({
       where: { userId: session.user.id },
-      select: employeeSelect,
+      select: employeeListSelect,
     });
 
     return NextResponse.json({ data: employee ? [employee] : [] });
@@ -45,7 +34,7 @@ export async function GET(request: NextRequest) {
 
   const employees = await prisma.employee.findMany({
     where,
-    select: employeeSelect,
+    select: employeeListSelect,
     orderBy: { lastName: "asc" },
   });
 
@@ -108,7 +97,7 @@ export async function POST(request: NextRequest) {
         linkedinUrl: employeeData.linkedinUrl ?? null,
         tshirtSize: employeeData.tshirtSize ?? null,
       },
-      select: employeeSelect,
+      select: employeeListSelect,
     });
   });
 
