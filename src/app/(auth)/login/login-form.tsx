@@ -24,17 +24,31 @@ export function LoginForm() {
 
   async function onSubmit(data: LoginValues) {
     setError(null);
-    const result = await signIn("credentials", {
-      email: data.email,
-      password: data.password,
-      redirect: false,
-      callbackUrl: "/",
-    });
+    console.log("[LOGIN] Submitting login for:", data.email);
 
-    if (result?.error) {
-      setError("Invalid email or password");
-    } else if (result?.url) {
-      window.location.href = result.url;
+    try {
+      const result = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+        callbackUrl: "/",
+      });
+
+      console.log("[LOGIN] signIn result:", JSON.stringify(result, null, 2));
+
+      if (result?.error) {
+        console.error("[LOGIN] signIn error:", result.error, "status:", result.status, "url:", result.url);
+        setError(`Login failed: ${result.error} (status: ${result.status})`);
+      } else if (result?.url) {
+        console.log("[LOGIN] Redirecting to:", result.url);
+        window.location.href = result.url;
+      } else {
+        console.error("[LOGIN] No error but no URL either:", result);
+        setError("Unexpected response from server");
+      }
+    } catch (err) {
+      console.error("[LOGIN] Exception during signIn:", err);
+      setError(`Exception: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 

@@ -35,8 +35,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        console.log("[AUTH] authorize called with email:", (credentials as Record<string, unknown>)?.email);
+
         const parsed = loginSchema.safeParse(credentials);
-        if (!parsed.success) return null;
+        if (!parsed.success) {
+          console.log("[AUTH] Zod validation failed:", parsed.error.flatten());
+          return null;
+        }
 
         const user = await prisma.user.findUnique({
           where: { email: parsed.data.email },
@@ -47,14 +52,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           },
         });
 
-        if (!user) return null;
+        if (!user) {
+          console.log("[AUTH] User not found for email:", parsed.data.email);
+          return null;
+        }
+
+        console.log("[AUTH] User found, id:", user.id, "role:", user.role);
 
         const valid = await bcrypt.compare(
           parsed.data.password,
           user.passwordHash,
         );
-        if (!valid) return null;
+        if (!valid) {
+          console.log("[AUTH] Invalid password for user:", user.id);
+          return null;
+        }
 
+        console.log("[AUTH] Login successful for user:", user.id);
         return {
           id: user.id,
           email: user.email,
