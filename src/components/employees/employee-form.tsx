@@ -8,7 +8,9 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   createEmployeeSchema,
+  updateEmployeeSchema,
   type CreateEmployeeInput,
+  type UpdateEmployeeInput,
 } from "@/lib/validations/employee";
 
 interface EmploymentType {
@@ -16,12 +18,29 @@ interface EmploymentType {
   name: string;
 }
 
-interface EmployeeFormProps {
+interface EmployeeFormBaseProps {
   employmentTypes: EmploymentType[];
 }
 
+interface CreateFormProps extends EmployeeFormBaseProps {
+  mode?: "create";
+  defaultValues?: undefined;
+  employeeId?: undefined;
+}
+
+interface EditFormProps extends EmployeeFormBaseProps {
+  mode: "edit";
+  defaultValues: UpdateEmployeeInput & { workEmail: string };
+  employeeId: string;
+}
+
+type EmployeeFormProps = CreateFormProps | EditFormProps;
+
 const inputClass =
   "h-[44px] w-full rounded-[8px] bg-[rgba(120,120,128,0.12)] px-3 text-[17px] text-[#1D1D1F] outline-none placeholder:text-[rgba(60,60,67,0.3)] focus:ring-2 focus:ring-[#007AFF]/40";
+
+const readOnlyInputClass =
+  "h-[44px] w-full rounded-[8px] bg-[rgba(120,120,128,0.06)] px-3 text-[17px] text-[#8E8E93] outline-none cursor-not-allowed";
 
 function FormField({
   label,
@@ -48,7 +67,10 @@ function FormField({
   );
 }
 
-export function EmployeeForm({ employmentTypes }: EmployeeFormProps) {
+export function EmployeeForm(props: EmployeeFormProps) {
+  const { employmentTypes, mode = "create" } = props;
+  const isEdit = mode === "edit";
+
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const formId = useId();
@@ -57,32 +79,42 @@ export function EmployeeForm({ employmentTypes }: EmployeeFormProps) {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<CreateEmployeeInput>({
-    resolver: zodResolver(createEmployeeSchema),
+  } = useForm<CreateEmployeeInput | UpdateEmployeeInput>({
+    resolver: zodResolver(isEdit ? updateEmployeeSchema : createEmployeeSchema),
+    defaultValues: isEdit ? props.defaultValues : undefined,
   });
 
   function fieldId(name: string) {
     return `${formId}-${name}`;
   }
 
-  async function onSubmit(data: CreateEmployeeInput) {
+  async function onSubmit(data: CreateEmployeeInput | UpdateEmployeeInput) {
     setSubmitting(true);
     try {
-      const res = await fetch("/api/employees", {
-        method: "POST",
+      const url = isEdit
+        ? `/api/employees/${props.employeeId}`
+        : "/api/employees";
+      const method = isEdit ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
       if (!res.ok) {
         const body = await res.json();
-        toast.error(body.error ?? "Failed to create employee");
+        toast.error(
+          body.error ?? `Failed to ${isEdit ? "update" : "create"} employee`,
+        );
         return;
       }
 
-      toast.success("Employee created successfully");
+      toast.success(
+        `Employee ${isEdit ? "updated" : "created"} successfully`,
+      );
       router.refresh();
-      router.push("/employees");
+      router.push(isEdit ? `/employees/${props.employeeId}` : "/employees");
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : "Something went wrong";
@@ -129,30 +161,50 @@ export function EmployeeForm({ employmentTypes }: EmployeeFormProps) {
           <FormField
             label="Work Email"
             htmlFor={fieldId("workEmail")}
-            error={errors.workEmail?.message}
+            error={
+              !isEdit
+                ? (errors as { workEmail?: { message?: string } }).workEmail
+                    ?.message
+                : undefined
+            }
           >
-            <input
-              {...register("workEmail")}
-              id={fieldId("workEmail")}
-              type="email"
-              placeholder="john@company.com"
-              className={inputClass}
-            />
+            {props.mode === "edit" ? (
+              <input
+                id={fieldId("workEmail")}
+                type="email"
+                value={props.defaultValues.workEmail}
+                readOnly
+                className={readOnlyInputClass}
+              />
+            ) : (
+              <input
+                {...register("workEmail" as keyof CreateEmployeeInput)}
+                id={fieldId("workEmail")}
+                type="email"
+                placeholder="john@company.com"
+                className={inputClass}
+              />
+            )}
           </FormField>
 
-          <FormField
-            label="Password"
-            htmlFor={fieldId("password")}
-            error={errors.password?.message}
-          >
-            <input
-              {...register("password")}
-              id={fieldId("password")}
-              type="password"
-              placeholder="Minimum 8 characters"
-              className={inputClass}
-            />
-          </FormField>
+          {!isEdit && (
+            <FormField
+              label="Password"
+              htmlFor={fieldId("password")}
+              error={
+                (errors as { password?: { message?: string } }).password
+                  ?.message
+              }
+            >
+              <input
+                {...register("password" as keyof CreateEmployeeInput)}
+                id={fieldId("password")}
+                type="password"
+                placeholder="Minimum 8 characters"
+                className={inputClass}
+              />
+            </FormField>
+          )}
 
           <FormField
             label="Employment Type"
@@ -163,11 +215,13 @@ export function EmployeeForm({ employmentTypes }: EmployeeFormProps) {
               {...register("employmentTypeId")}
               id={fieldId("employmentTypeId")}
               className={inputClass}
-              defaultValue=""
+              defaultValue={isEdit ? undefined : ""}
             >
-              <option value="" disabled>
-                Select type...
-              </option>
+              {!isEdit && (
+                <option value="" disabled>
+                  Select type...
+                </option>
+              )}
               {employmentTypes.map((et) => (
                 <option key={et.id} value={et.id}>
                   {et.name}
@@ -347,7 +401,11 @@ export function EmployeeForm({ employmentTypes }: EmployeeFormProps) {
       <div className="mt-6 flex justify-end gap-3">
         <button
           type="button"
-          onClick={() => router.push("/employees")}
+          onClick={() =>
+            router.push(
+              isEdit ? `/employees/${props.employeeId}` : "/employees",
+            )
+          }
           className="h-[44px] rounded-[8px] px-5 text-[17px] font-semibold text-[#007AFF] transition-colors hover:bg-[#E5E5EA]"
         >
           Cancel
@@ -359,6 +417,8 @@ export function EmployeeForm({ employmentTypes }: EmployeeFormProps) {
         >
           {submitting ? (
             <Loader2 className="size-5 animate-spin" />
+          ) : isEdit ? (
+            "Save Changes"
           ) : (
             "Create Employee"
           )}

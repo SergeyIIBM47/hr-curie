@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
 import { employeeDetailSelect } from "@/lib/employee-select";
 import { DetailField } from "@/components/shared/detail-field";
+import { RoleToggle } from "@/components/employees/role-toggle";
 import { getInitials, formatDateUTC, isHttpUrl } from "@/lib/utils";
 
 interface EmployeeProfilePageProps {
@@ -74,6 +75,13 @@ export default async function EmployeeProfilePage({
             >
               {employee.user.role === "ADMIN" ? "Admin" : "Employee"}
             </span>
+            {isAdmin && (
+              <RoleToggle
+                employeeId={id}
+                currentRole={employee.user.role}
+                isSelf={employee.user.id === session.user.id}
+              />
+            )}
           </div>
         </div>
 
