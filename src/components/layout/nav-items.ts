@@ -24,12 +24,4 @@ export const navItems: NavItem[] = [
   { label: "Settings", href: "/settings", icon: Settings, adminOnly: true },
 ];
 
-export function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
+export { getInitials } from "@/lib/utils";
