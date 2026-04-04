@@ -1,9 +1,12 @@
 import { PostgreSqlContainer, type StartedPostgreSqlContainer } from "@testcontainers/postgresql";
 import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 import { execSync } from "node:child_process";
 
 let container: StartedPostgreSqlContainer;
 let prisma: PrismaClient;
+let pool: Pool;
 
 export async function setupTestDb() {
   container = await new PostgreSqlContainer("postgres:15-alpine")
@@ -30,9 +33,9 @@ export async function setupTestDb() {
     // Seed may not exist yet
   }
 
-  prisma = new PrismaClient({
-    datasourceUrl: databaseUrl,
-  });
+  pool = new Pool({ connectionString: databaseUrl });
+  const adapter = new PrismaPg(pool);
+  prisma = new PrismaClient({ adapter });
 
   return { container, prisma, databaseUrl };
 }
@@ -40,6 +43,9 @@ export async function setupTestDb() {
 export async function teardownTestDb() {
   if (prisma) {
     await prisma.$disconnect();
+  }
+  if (pool) {
+    await pool.end();
   }
   if (container) {
     await container.stop();
