@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-  testDir: "tests/e2e/flows",
+  testDir: "tests/e2e",
   outputDir: "test-results",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -15,16 +15,27 @@ export default defineConfig({
   },
   projects: [
     {
+      name: "setup",
+      testMatch: /auth\.setup\.ts/,
+      fullyParallel: false,
+    },
+    {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+      testDir: "tests/e2e/flows",
+      dependencies: ["setup"],
     },
     {
       name: "firefox",
       use: { ...devices["Desktop Firefox"] },
+      testDir: "tests/e2e/flows",
+      dependencies: ["setup"],
     },
     {
       name: "mobile-chrome",
       use: { ...devices["Pixel 5"] },
+      testDir: "tests/e2e/flows",
+      dependencies: ["setup"],
     },
   ],
   webServer: {
