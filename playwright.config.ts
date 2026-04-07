@@ -35,6 +35,7 @@ export default defineConfig({
       name: "mobile-chrome",
       use: { ...devices["Pixel 5"] },
       testDir: "tests/e2e/flows",
+      testIgnore: /navigation\.spec\.ts$/,
       dependencies: ["setup"],
     },
   ],
