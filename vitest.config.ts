@@ -40,6 +40,12 @@ export default defineConfig({
         "src/**/types/**",
         "src/components/ui/**",
         "src/lib/dev-db.ts",
+        "src/app/**/page.tsx",
+        "src/app/**/layout.tsx",
+        "src/app/api/**",
+        "src/lib/prisma.ts",
+        "src/lib/auth.ts",
+        "src/components/layout/nav-items.ts",
       ],
       thresholds: {
         branches: 80,
