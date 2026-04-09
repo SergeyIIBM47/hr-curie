@@ -91,12 +91,12 @@ export function RoleToggle({
               <strong>{pendingRole.toLowerCase()}</strong>.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="flex-col gap-2 sm:flex-row sm:gap-3">
             <button
               type="button"
               onClick={() => setConfirmOpen(false)}
               disabled={loading}
-              className="h-[36px] rounded-[8px] px-4 text-[15px] font-semibold text-[#007AFF] transition-colors hover:bg-[#E5E5EA]"
+              className="h-[44px] w-full rounded-[8px] px-4 text-[15px] font-semibold text-[#007AFF] transition-colors duration-150 hover:bg-[#E5E5EA] sm:h-[36px] sm:w-auto"
             >
               Cancel
             </button>
@@ -104,7 +104,7 @@ export function RoleToggle({
               type="button"
               onClick={confirmRoleChange}
               disabled={loading}
-              className="h-[36px] rounded-[8px] bg-[#007AFF] px-4 text-[15px] font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-60"
+              className="h-[44px] w-full rounded-[8px] bg-[#007AFF] px-4 text-[15px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98] disabled:opacity-60 sm:h-[36px] sm:w-auto"
             >
               {loading ? "Updating..." : "Confirm"}
             </button>

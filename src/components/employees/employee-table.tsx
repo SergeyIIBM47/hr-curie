@@ -48,8 +48,15 @@ export function EmployeeTable({ employees }: EmployeeTableProps) {
             return (
               <TableRow
                 key={emp.id}
-                className="h-[52px] cursor-pointer hover:bg-[#F2F2F7]"
+                tabIndex={0}
+                className="h-[52px] cursor-pointer transition-colors duration-150 hover:bg-[#F2F2F7]"
                 onClick={() => router.push(`/employees/${emp.id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    router.push(`/employees/${emp.id}`);
+                  }
+                }}
               >
                 <TableCell className="px-4">
                   <div className="flex items-center gap-3">

@@ -38,18 +38,18 @@ export default async function LeavePage() {
             {leaveRequests.length === 1 ? "request" : "requests"}
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
           {isAdmin && (
             <Link
               href="/leave/manage"
-              className="inline-flex h-[44px] items-center justify-center rounded-[8px] border border-[#007AFF] px-5 text-[17px] font-semibold text-[#007AFF] transition-all hover:bg-[#007AFF]/5 active:scale-[0.98]"
+              className="inline-flex h-[44px] items-center justify-center rounded-[8px] border border-[#007AFF] px-5 text-[17px] font-semibold text-[#007AFF] transition-all duration-150 hover:bg-[#007AFF]/5 active:scale-[0.98]"
             >
               Manage Requests
             </Link>
           )}
           <Link
             href="/leave/request"
-            className="inline-flex h-[44px] items-center justify-center rounded-[8px] bg-[#007AFF] px-5 text-[17px] font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98]"
+            className="inline-flex h-[44px] items-center justify-center rounded-[8px] bg-[#007AFF] px-5 text-[17px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98]"
           >
             Request Leave
           </Link>

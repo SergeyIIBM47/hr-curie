@@ -35,7 +35,7 @@ function StatCard({ label, value, icon, href }: StatCardProps) {
 
   if (href) {
     return (
-      <Link href={href} className="transition-transform active:scale-[0.98]">
+      <Link href={href} className="transition-all duration-150 hover:opacity-90 active:scale-[0.98]">
         {inner}
       </Link>
     );
@@ -84,7 +84,7 @@ function AdminDashboard({
       <h1 className="mb-6 text-[28px] font-bold text-[#1D1D1F]">Dashboard</h1>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section aria-label="Statistics" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Total Employees"
           value={totalEmployees}
@@ -106,7 +106,7 @@ function AdminDashboard({
           value={newThisMonth}
           icon={<UserPlus className="h-6 w-6 text-apple-green" />}
         />
-      </div>
+      </section>
 
       {/* Recent lists */}
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -319,7 +319,7 @@ function QuickAction({ href, icon, label }: QuickActionProps) {
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 rounded-[10px] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)] transition-transform active:scale-[0.98]"
+      className="flex items-center gap-3 rounded-[10px] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)] transition-all duration-150 hover:bg-[#F9F9FB] active:scale-[0.98]"
     >
       {icon}
       <span className="text-[15px] font-medium text-[#1D1D1F]">{label}</span>

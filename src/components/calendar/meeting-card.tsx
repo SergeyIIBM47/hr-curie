@@ -97,10 +97,12 @@ export function MeetingCard({ meeting }: { meeting: Meeting }) {
   const overflow = meeting.participants.length - 3;
 
   return (
-    <div className="rounded-[10px] bg-white p-3 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-shadow hover:shadow-[0_2px_8px_rgba(0,0,0,0.1)]">
+    <article className="rounded-[10px] bg-white p-3 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-shadow duration-150 hover:shadow-[0_2px_8px_rgba(0,0,0,0.1)]">
       <button
         type="button"
         onClick={() => setExpanded((prev) => !prev)}
+        aria-expanded={expanded}
+        aria-label={`${meeting.title} — ${timeStr} to ${endStr}`}
         className="flex w-full items-start gap-3 text-left"
       >
         <div className="min-w-0 flex-1">
@@ -206,6 +208,6 @@ export function MeetingCard({ meeting }: { meeting: Meeting }) {
           </div>
         </div>
       )}
-    </div>
+    </article>
   );
 }

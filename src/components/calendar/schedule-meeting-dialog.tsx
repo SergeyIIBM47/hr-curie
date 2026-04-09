@@ -100,9 +100,10 @@ function ParticipantChip({
       <button
         type="button"
         onClick={onRemove}
-        className="ml-0.5 flex size-4 items-center justify-center rounded-full transition-colors hover:bg-[#007AFF]/20"
+        aria-label={`Remove ${employee.firstName} ${employee.lastName}`}
+        className="ml-0.5 flex size-4 items-center justify-center rounded-full transition-colors duration-150 hover:bg-[#007AFF]/20"
       >
-        <X className="size-3" />
+        <X className="size-3" aria-hidden="true" />
       </button>
     </span>
   );
@@ -235,7 +236,7 @@ export function ScheduleMeetingDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-[480px] rounded-[14px] shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.08)]"
+        className="max-h-[90vh] overflow-y-auto rounded-t-[14px] shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.08)] sm:rounded-[14px] sm:max-w-[480px]"
         showCloseButton
       >
         <DialogHeader>
@@ -262,7 +263,7 @@ export function ScheduleMeetingDialog({
             />
           </FormField>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <FormField
               label="Type"
               htmlFor={fieldId("type")}
@@ -398,11 +399,11 @@ export function ScheduleMeetingDialog({
           </FormField>
         </form>
 
-        <DialogFooter>
+        <DialogFooter className="flex-col gap-2 sm:flex-row sm:gap-3">
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="h-[38px] rounded-[8px] px-4 text-[15px] font-semibold text-[#007AFF] transition-colors hover:bg-[#E5E5EA]"
+            className="h-[44px] w-full rounded-[8px] px-4 text-[15px] font-semibold text-[#007AFF] transition-colors duration-150 hover:bg-[#E5E5EA] sm:h-[38px] sm:w-auto"
           >
             Cancel
           </button>
@@ -410,7 +411,7 @@ export function ScheduleMeetingDialog({
             type="submit"
             form={`${formId}-form`}
             disabled={submitting}
-            className="inline-flex h-[38px] items-center justify-center rounded-[8px] bg-[#007AFF] px-5 text-[15px] font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-60"
+            className="inline-flex h-[44px] w-full items-center justify-center rounded-[8px] bg-[#007AFF] px-5 text-[15px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98] disabled:opacity-60 sm:h-[38px] sm:w-auto"
           >
             {submitting ? (
               <Loader2 className="size-4 animate-spin" />

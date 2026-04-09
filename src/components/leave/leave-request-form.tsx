@@ -208,18 +208,18 @@ export function LeaveRequestForm() {
         </div>
       </div>
 
-      <div className="mt-6 flex justify-end gap-3">
+      <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <button
           type="button"
           onClick={() => router.push("/leave")}
-          className="h-[44px] rounded-[8px] px-5 text-[17px] font-semibold text-[#007AFF] transition-colors hover:bg-[#E5E5EA]"
+          className="h-[44px] w-full rounded-[8px] px-5 text-[17px] font-semibold text-[#007AFF] transition-colors duration-150 hover:bg-[#E5E5EA] sm:w-auto"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={submitting}
-          className="inline-flex h-[44px] items-center justify-center rounded-[8px] bg-[#007AFF] px-6 text-[17px] font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-60"
+          className="inline-flex h-[44px] w-full items-center justify-center rounded-[8px] bg-[#007AFF] px-6 text-[17px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98] disabled:opacity-60 sm:w-auto"
         >
           {submitting ? (
             <Loader2 className="size-5 animate-spin" />

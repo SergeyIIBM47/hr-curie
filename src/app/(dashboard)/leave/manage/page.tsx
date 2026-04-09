@@ -49,7 +49,7 @@ export default async function LeaveManagePage() {
         </div>
         <Link
           href="/leave"
-          className="inline-flex h-[44px] items-center justify-center rounded-[8px] border border-[#007AFF] px-5 text-[17px] font-semibold text-[#007AFF] transition-all hover:bg-[#007AFF]/5 active:scale-[0.98]"
+          className="inline-flex h-[44px] w-full items-center justify-center rounded-[8px] border border-[#007AFF] px-5 text-[17px] font-semibold text-[#007AFF] transition-all duration-150 hover:bg-[#007AFF]/5 active:scale-[0.98] sm:w-auto"
         >
           Back to Leave
         </Link>

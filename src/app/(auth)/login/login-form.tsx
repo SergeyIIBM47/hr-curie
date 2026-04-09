@@ -108,13 +108,13 @@ export function LoginForm() {
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgba(60,60,67,0.6)] hover:text-[rgba(60,60,67,0.8)]"
-            tabIndex={-1}
+            className="absolute right-3 top-1/2 flex size-[44px] -translate-y-1/2 items-center justify-center text-[rgba(60,60,67,0.6)] transition-colors duration-150 hover:text-[rgba(60,60,67,0.8)]"
+            aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? (
-              <EyeOff className="size-5" />
+              <EyeOff className="size-5" aria-hidden="true" />
             ) : (
-              <Eye className="size-5" />
+              <Eye className="size-5" aria-hidden="true" />
             )}
           </button>
         </div>

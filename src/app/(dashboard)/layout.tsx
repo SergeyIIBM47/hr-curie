@@ -21,7 +21,7 @@ export default async function DashboardLayout({
       <Sidebar user={user} />
       <Topbar user={user} />
 
-      <main className="md:pl-[260px]">
+      <main id="main-content" className="md:pl-[260px]">
         <div className="mx-auto max-w-[1200px] p-4 md:p-6">{children}</div>
       </main>
     </div>

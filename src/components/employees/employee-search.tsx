@@ -22,13 +22,14 @@ export function EmployeeSearch() {
   }, [debouncedQuery, router, searchParams]);
 
   return (
-    <div className="relative">
-      <Search className="absolute left-3 top-1/2 size-[18px] -translate-y-1/2 text-[#8E8E93]" />
+    <div role="search" className="relative">
+      <Search className="absolute left-3 top-1/2 size-[18px] -translate-y-1/2 text-[#8E8E93]" aria-hidden="true" />
       <input
-        type="text"
+        type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search employees..."
+        aria-label="Search employees"
         className="h-[44px] w-full rounded-[8px] bg-[rgba(120,120,128,0.12)] pl-10 pr-3 text-[17px] text-[#1D1D1F] outline-none placeholder:text-[rgba(60,60,67,0.3)] focus:ring-2 focus:ring-[#007AFF]/40"
       />
     </div>

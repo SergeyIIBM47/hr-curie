@@ -154,7 +154,7 @@ export function CalendarMonthView({
             <button
               type="button"
               onClick={goToToday}
-              className="rounded-[6px] px-2 py-1 text-[13px] font-medium text-[#007AFF] transition-colors hover:bg-[#007AFF]/10"
+              className="rounded-[6px] px-2 py-1 text-[13px] font-medium text-[#007AFF] transition-colors duration-150 hover:bg-[#007AFF]/10"
             >
               Today
             </button>
@@ -163,7 +163,7 @@ export function CalendarMonthView({
             <button
               type="button"
               onClick={prevMonth}
-              className="flex size-9 items-center justify-center rounded-[8px] text-[#3C3C43] transition-colors hover:bg-[#F2F2F7]"
+              className="flex size-[44px] items-center justify-center rounded-[8px] text-[#3C3C43] transition-colors duration-150 hover:bg-[#F2F2F7] sm:size-9"
               aria-label="Previous month"
             >
               <ChevronLeft className="size-5" />
@@ -171,7 +171,7 @@ export function CalendarMonthView({
             <button
               type="button"
               onClick={nextMonth}
-              className="flex size-9 items-center justify-center rounded-[8px] text-[#3C3C43] transition-colors hover:bg-[#F2F2F7]"
+              className="flex size-[44px] items-center justify-center rounded-[8px] text-[#3C3C43] transition-colors duration-150 hover:bg-[#F2F2F7] sm:size-9"
               aria-label="Next month"
             >
               <ChevronRight className="size-5" />
@@ -214,7 +214,9 @@ export function CalendarMonthView({
                   key={date.toISOString()}
                   type="button"
                   onClick={() => setSelectedDate(date)}
-                  className={`relative flex min-h-[72px] flex-col items-center border-b border-r border-[#F2F2F7] pt-2 transition-colors last:border-r-0 sm:min-h-[84px] ${
+                  aria-label={date.toLocaleDateString("default", { month: "long", day: "numeric" })}
+                  aria-pressed={isSelected}
+                  className={`relative flex min-h-[72px] flex-col items-center border-b border-r border-[#F2F2F7] pt-2 transition-colors duration-150 last:border-r-0 sm:min-h-[84px] ${
                     isSelected
                       ? "bg-[#007AFF]/5"
                       : "hover:bg-[#F2F2F7]"

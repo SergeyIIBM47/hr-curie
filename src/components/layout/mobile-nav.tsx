@@ -37,7 +37,7 @@ export function MobileNav({ user }: MobileNavProps) {
     <div className="md:hidden">
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger
-          className="rounded-[8px] p-1.5 text-[#1D1D1F] hover:bg-[#E5E5EA]"
+          className="flex size-[44px] items-center justify-center rounded-[8px] text-[#1D1D1F] transition-colors duration-150 hover:bg-[#E5E5EA]"
           aria-label="Open navigation"
         >
           <Menu className="size-6" strokeWidth={1.75} />
@@ -55,7 +55,7 @@ export function MobileNav({ user }: MobileNavProps) {
             </span>
           </div>
 
-          <nav className="flex-1 overflow-y-auto py-2">
+          <nav aria-label="Main navigation" className="flex-1 overflow-y-auto py-2">
             {navItems.map((item) => {
               if (item.adminOnly && user.role !== "ADMIN") return null;
 
@@ -67,7 +67,8 @@ export function MobileNav({ user }: MobileNavProps) {
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className={`mx-3 mb-0.5 flex h-[44px] items-center gap-3 rounded-[8px] px-3 transition-colors ${
+                  aria-current={active ? "page" : undefined}
+                  className={`mx-3 mb-0.5 flex h-[44px] items-center gap-3 rounded-[8px] px-3 transition-colors duration-150 ${
                     active
                       ? "border-l-[3px] border-[#007AFF] bg-[#007AFF]/10 text-[#007AFF]"
                       : "text-[#1D1D1F] hover:bg-[#E5E5EA]"
@@ -105,7 +106,7 @@ export function MobileNav({ user }: MobileNavProps) {
               </div>
               <button
                 onClick={() => void signOut({ callbackUrl: "/login" })}
-                className="rounded-[8px] p-2 text-[#8E8E93] transition-colors hover:bg-[#E5E5EA] hover:text-[#FF3B30]"
+                className="rounded-[8px] p-2 text-[#8E8E93] transition-colors duration-150 hover:bg-[#E5E5EA] hover:text-[#FF3B30]"
                 aria-label="Sign out"
               >
                 <LogOut className="size-[18px]" strokeWidth={1.75} />

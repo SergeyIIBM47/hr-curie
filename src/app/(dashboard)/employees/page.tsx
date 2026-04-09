@@ -59,7 +59,7 @@ export default async function EmployeesPage({
         </div>
         <Link
           href="/employees/new"
-          className="inline-flex h-[44px] items-center justify-center rounded-[8px] bg-[#007AFF] px-5 text-[17px] font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98]"
+          className="inline-flex h-[44px] w-full items-center justify-center rounded-[8px] bg-[#007AFF] px-5 text-[17px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98] sm:w-auto"
         >
           Add Employee
         </Link>

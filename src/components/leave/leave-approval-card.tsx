@@ -160,14 +160,14 @@ export function LeaveApprovalCard({
           <button
             type="button"
             onClick={() => setConfirmAction("reject")}
-            className="h-[44px] flex-1 rounded-[8px] bg-[#FF3B30] text-[17px] font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98]"
+            className="h-[44px] flex-1 rounded-[8px] bg-[#FF3B30] text-[17px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98]"
           >
             Reject
           </button>
           <button
             type="button"
             onClick={() => setConfirmAction("approve")}
-            className="h-[44px] flex-1 rounded-[8px] bg-[#34C759] text-[17px] font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98]"
+            className="h-[44px] flex-1 rounded-[8px] bg-[#34C759] text-[17px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98]"
           >
             Approve
           </button>
@@ -196,12 +196,12 @@ export function LeaveApprovalCard({
               {duration} working day{duration !== 1 ? "s" : ""}?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="flex-col gap-2 sm:flex-row sm:gap-3">
             <button
               type="button"
               onClick={() => setConfirmAction(null)}
               disabled={loading}
-              className="h-[36px] rounded-[8px] px-4 text-[15px] font-semibold text-[#007AFF] transition-colors hover:bg-[#E5E5EA]"
+              className="h-[44px] w-full rounded-[8px] px-4 text-[15px] font-semibold text-[#007AFF] transition-colors duration-150 hover:bg-[#E5E5EA] sm:h-[36px] sm:w-auto"
             >
               Cancel
             </button>
@@ -209,7 +209,7 @@ export function LeaveApprovalCard({
               type="button"
               onClick={handleConfirm}
               disabled={loading}
-              className={`h-[36px] rounded-[8px] px-4 text-[15px] font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-60 ${
+              className={`h-[44px] w-full rounded-[8px] px-4 text-[15px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98] disabled:opacity-60 sm:h-[36px] sm:w-auto ${
                 confirmAction === "approve"
                   ? "bg-[#34C759]"
                   : "bg-[#FF3B30]"

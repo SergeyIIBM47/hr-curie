@@ -86,16 +86,16 @@ export default async function EmployeeProfilePage({
         </div>
 
         {isAdmin && (
-          <div className="flex gap-3 self-center sm:self-start">
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:self-start">
             <Link
               href="/employees"
-              className="inline-flex h-[44px] items-center rounded-[8px] px-5 text-[17px] font-semibold text-[#007AFF] transition-colors hover:bg-[#E5E5EA]"
+              className="inline-flex h-[44px] items-center justify-center rounded-[8px] px-5 text-[17px] font-semibold text-[#007AFF] transition-colors duration-150 hover:bg-[#E5E5EA]"
             >
               Back to List
             </Link>
             <Link
               href={`/employees/${id}/edit`}
-              className="inline-flex h-[44px] items-center justify-center rounded-[8px] bg-[#007AFF] px-5 text-[17px] font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98]"
+              className="inline-flex h-[44px] items-center justify-center rounded-[8px] bg-[#007AFF] px-5 text-[17px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98]"
             >
               Edit
             </Link>

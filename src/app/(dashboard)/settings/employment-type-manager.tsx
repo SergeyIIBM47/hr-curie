@@ -109,12 +109,17 @@ export function EmploymentTypeManager({
                 type="button"
                 onClick={() => handleDelete(type)}
                 disabled={hasEmployees || isDeleting}
+                aria-label={
+                  hasEmployees
+                    ? `Cannot delete ${type.name} — ${type.employeeCount} employee${type.employeeCount > 1 ? "s" : ""} assigned`
+                    : `Delete ${type.name}`
+                }
                 title={
                   hasEmployees
                     ? `Cannot delete — ${type.employeeCount} employee${type.employeeCount > 1 ? "s" : ""} assigned`
                     : `Delete "${type.name}"`
                 }
-                className="ml-0.5 flex size-5 items-center justify-center rounded-full transition-colors enabled:hover:bg-[#D1D1D6] disabled:cursor-not-allowed disabled:opacity-30"
+                className="ml-0.5 flex size-5 items-center justify-center rounded-full transition-colors duration-150 enabled:hover:bg-[#D1D1D6] disabled:cursor-not-allowed disabled:opacity-30"
               >
                 {isDeleting ? (
                   <Loader2 className="size-3 animate-spin" />
@@ -128,7 +133,7 @@ export function EmploymentTypeManager({
       </div>
 
       {/* Add Type */}
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <input
           type="text"
           value={newName}
@@ -137,13 +142,14 @@ export function EmploymentTypeManager({
             if (e.key === "Enter") handleAdd();
           }}
           placeholder="New employment type..."
-          className="h-[44px] flex-1 rounded-[8px] bg-[rgba(120,120,128,0.12)] px-3 text-[17px] text-[#1D1D1F] outline-none placeholder:text-[rgba(60,60,67,0.3)] focus:ring-2 focus:ring-[#007AFF]/40"
+          aria-label="New employment type name"
+          className="h-[44px] w-full rounded-[8px] bg-[rgba(120,120,128,0.12)] px-3 text-[17px] text-[#1D1D1F] outline-none placeholder:text-[rgba(60,60,67,0.3)] focus:ring-2 focus:ring-[#007AFF]/40 sm:flex-1"
         />
         <button
           type="button"
           onClick={handleAdd}
           disabled={adding || !newName.trim()}
-          className="inline-flex h-[44px] items-center justify-center gap-1.5 rounded-[8px] bg-[#007AFF] px-4 text-[15px] font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-60"
+          className="inline-flex h-[44px] w-full items-center justify-center gap-1.5 rounded-[8px] bg-[#007AFF] px-4 text-[15px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98] disabled:opacity-60 sm:w-auto"
         >
           {adding ? (
             <Loader2 className="size-4 animate-spin" />

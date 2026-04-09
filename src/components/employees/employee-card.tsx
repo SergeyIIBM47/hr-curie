@@ -15,7 +15,7 @@ export function EmployeeCard({ employee }: EmployeeCardProps) {
   return (
     <Link
       href={`/employees/${employee.id}`}
-      className="block rounded-[10px] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)] transition-colors hover:bg-[#F2F2F7]"
+      className="block rounded-[10px] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)] transition-colors duration-150 hover:bg-[#F2F2F7]"
     >
       <div className="flex items-center gap-3">
         <Avatar className="size-10">
