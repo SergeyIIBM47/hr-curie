@@ -110,10 +110,11 @@
   --color-fill-secondary: #78788028;
   --color-fill-tertiary: #7676801E;
 
-  /* ── Font Family (Apple system font stack) ──────────────────── */
-  --font-sans: -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  /* ── Font Family (HR Curie redesign: General Sans + Fraunces) ── */
+  --font-sans: "General Sans", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   --font-mono: "SF Mono", Monaco, Inconsolata, "Fira Mono", "Droid Sans Mono", "Source Code Pro", monospace;
-  --font-heading: var(--font-sans);
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-heading: var(--font-display);
 
   /* ── Apple HIG Typography Scale ─────────────────────────────── */
   --font-size-apple-large-title: 34px;
@@ -189,6 +190,66 @@
   --blur-apple-md: 20px;
   --blur-apple-lg: 40px;
   --blur-apple-ultra: 80px;
+
+  /* ═══════════════════════════════════════════════════════════════
+     HR Curie redesign tokens — Cobalt / Frost / Ink (mockup parity)
+     Lives alongside Apple tokens during the per-route migration.
+     ═══════════════════════════════════════════════════════════════ */
+
+  /* ── Surfaces ── */
+  --color-curie-bg:             #F5F7FA;
+  --color-curie-surface:        #FFFFFF;
+  --color-curie-surface-elev:   #FFFFFF;
+  --color-curie-surface-sunken: #EEF2F8;
+
+  /* ── Foreground ── */
+  --color-curie-fg:             #0B0F1A;
+  --color-curie-fg-secondary:   #4B5563;
+  --color-curie-fg-muted:       #9AA3B2;
+  --color-curie-fg-on-ink:      #FFFFFF;
+  --color-curie-fg-on-brand:    #FFFFFF;
+
+  /* ── Brand (Cobalt) ── */
+  --color-curie-brand:          #2563EB;
+  --color-curie-brand-hover:    #1D4ED8;
+  --color-curie-brand-soft:     #DCE7FF;
+  --color-curie-brand-wash:     #EEF4FF;
+  --color-curie-brand-ink:      #1E3A8A;
+
+  /* ── Semantic ── */
+  --color-curie-success:        #16A34A;
+  --color-curie-success-soft:   #DCFCE7;
+  --color-curie-warning:        #D97706;
+  --color-curie-warning-soft:   #FEF3C7;
+  --color-curie-danger:         #DC2626;
+  --color-curie-danger-soft:    #FEE2E2;
+  --color-curie-info:           #0891B2;
+  --color-curie-info-soft:      #CFFAFE;
+
+  /* ── Borders ── */
+  --color-curie-border:         #E2E8F0;
+  --color-curie-border-strong:  #CBD5E1;
+
+  /* ── Typography ── */
+  --font-curie-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-curie-sans:    "General Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-curie-mono:    ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* ── Radius ── */
+  --radius-curie-xs:   4px;
+  --radius-curie-sm:   8px;
+  --radius-curie-md:   12px;
+  --radius-curie-lg:   18px;
+  --radius-curie-xl:   24px;
+  --radius-curie-pill: 999px;
+
+  /* ── Shadows ── */
+  --shadow-curie-soft:   0 2px 8px -2px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-curie-lifted: 0 12px 32px -12px rgba(15, 23, 42, 0.12), 0 4px 8px -4px rgba(15, 23, 42, 0.06);
+
+  /* ── Shell dimensions (mockup) ── */
+  --curie-sidebar-w: 240px;
+  --curie-rail-w:    320px;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -196,8 +257,8 @@
    ═══════════════════════════════════════════════════════════════ */
 
 :root {
-  --background: #FFFFFF;
-  --foreground: #000000;
+  --background: #F5F7FA;
+  --foreground: #0B0F1A;
   --card: #FFFFFF;
   --card-foreground: #000000;
   --popover: #FFFFFF;
