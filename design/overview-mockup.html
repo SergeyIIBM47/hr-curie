@@ -9,29 +9,44 @@
 <style>
 /* ── Tokens ─────────────────────────────────────────────── */
 :root {
-  --color-bg:              #F4EFE6;
-  --color-surface:         #FBF7EF;
+  /* Surfaces — white cards on cool Frost background */
+  --color-bg:              #F5F7FA;
+  --color-surface:         #FFFFFF;
   --color-surface-elev:    #FFFFFF;
-  --color-surface-sunken:  #EDE6D8;
-  --color-fg:              #1A1714;
-  --color-fg-secondary:    #4A453E;
-  --color-fg-muted:        #8A8276;
-  --color-fg-on-ink:       #FBF7EF;
-  --color-brand:           #1A1714;
-  --color-brand-hover:     #2A251F;
-  --color-accent:          #C5D63F;
-  --color-accent-soft:     #E6EDB0;
-  --color-accent-ink:      #4A5210;
-  --color-success:         #4A6B3A;
-  --color-success-soft:    #DDE6CF;
-  --color-warning:         #B8732A;
-  --color-warning-soft:    #F2E2C9;
-  --color-danger:          #A33B2A;
-  --color-danger-soft:     #EFD2CB;
-  --color-info:            #4D6B85;
-  --color-info-soft:       #D7DEE6;
-  --color-border:          #E2DACA;
-  --color-border-strong:   #C9C0AC;
+  --color-surface-sunken:  #EEF2F8;
+
+  /* Foreground — cool Ink + Slate + Ash */
+  --color-fg:              #0B0F1A;
+  --color-fg-secondary:    #4B5563;
+  --color-fg-muted:        #9AA3B2;
+  --color-fg-on-ink:       #FFFFFF;
+  --color-fg-on-brand:     #FFFFFF;
+
+  /* Brand — Cobalt does both brand + pointer */
+  --color-brand:           #2563EB;
+  --color-brand-hover:     #1D4ED8;
+  --color-brand-soft:      #DCE7FF;
+  --color-brand-wash:      #EEF4FF;
+  --color-brand-ink:       #1E3A8A;
+
+  /* Accent aliases (legacy refs in cascading rules still resolve) */
+  --color-accent:          #2563EB;
+  --color-accent-soft:     #DCE7FF;
+  --color-accent-ink:      #1E3A8A;
+
+  /* Semantic */
+  --color-success:         #16A34A;
+  --color-success-soft:    #DCFCE7;
+  --color-warning:         #D97706;
+  --color-warning-soft:    #FEF3C7;
+  --color-danger:          #DC2626;
+  --color-danger-soft:     #FEE2E2;
+  --color-info:            #0891B2;
+  --color-info-soft:       #CFFAFE;
+
+  /* Borders */
+  --color-border:          #E2E8F0;
+  --color-border-strong:   #CBD5E1;
 
   --font-display: "Fraunces", ui-serif, Georgia, serif;
   --font-sans:    "General Sans", ui-sans-serif, system-ui, sans-serif;
@@ -44,8 +59,8 @@
   --radius-xl: 24px;
   --radius-pill: 999px;
 
-  --shadow-soft:   0 2px 8px -2px rgba(26, 23, 20, 0.06), 0 1px 2px rgba(26, 23, 20, 0.04);
-  --shadow-lifted: 0 12px 32px -12px rgba(26, 23, 20, 0.12), 0 4px 8px -4px rgba(26, 23, 20, 0.06);
+  --shadow-soft:   0 2px 8px -2px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-lifted: 0 12px 32px -12px rgba(15, 23, 42, 0.12), 0 4px 8px -4px rgba(15, 23, 42, 0.06);
 
   --sidebar-w: 240px;
   --rail-w:    320px;
@@ -93,8 +108,8 @@ svg { display: block; }
 .brand-mark {
   width: 28px; height: 28px;
   border-radius: 8px;
-  background: var(--color-fg);
-  color: var(--color-fg-on-ink);
+  background: var(--color-brand);
+  color: var(--color-fg-on-brand);
   display: grid; place-items: center;
   font-family: var(--font-display);
   font-weight: 500;
@@ -258,8 +273,8 @@ svg { display: block; }
   transition: background 120ms, transform 120ms;
 }
 .btn-primary {
-  background: var(--color-fg);
-  color: var(--color-fg-on-ink);
+  background: var(--color-brand);
+  color: var(--color-fg-on-brand);
 }
 .btn-primary:hover { background: var(--color-brand-hover); }
 .btn-secondary {
@@ -506,13 +521,13 @@ svg { display: block; }
 .av.md { width: 36px; height: 36px; font-size: 13px; }
 .av.lg { width: 44px; height: 44px; font-size: 15px; }
 
-/* Tint variants for avatar fallbacks — purely decorative */
-.av-a { background: #DCD3BC; }
-.av-b { background: #D6CFB0; color: #3F3A14; }
-.av-c { background: #E5D5CC; color: #4A2C20; }
-.av-d { background: #D2D9C5; color: #2F3B22; }
-.av-e { background: #E3D6BB; color: #4A3618; }
-.av-f { background: #CFD3BC; color: #353A1F; }
+/* Tint variants for avatar fallbacks — cool slate-blue family */
+.av-a { background: #DBE5F4; }
+.av-b { background: #D2DAE8; color: #1E293B; }
+.av-c { background: #E3E7F1; color: #1E3A8A; }
+.av-d { background: #D8E2F0; color: #1F2937; }
+.av-e { background: #DCE2EE; color: #1E3A8A; }
+.av-f { background: #D6DEEA; color: #1F2937; }
 
 .av-stack { display: inline-flex; }
 .av-stack .av { border: 2px solid var(--color-surface); margin-left: -8px; }
@@ -891,12 +906,12 @@ svg { display: block; }
             </span>
             <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none">
               <polyline points="0,22 12,20 24,21 36,18 48,17 60,15 72,14 84,11 100,8"
-                fill="none" stroke="#4A453E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                fill="none" stroke="#4B5563" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
         </div>
 
-        <!-- KPI 2 — Open roles (THE Radium moment) -->
+        <!-- KPI 2 — Open roles (THE Cobalt moment) -->
         <div class="kpi">
           <div class="kpi-label">
             Open roles
@@ -911,14 +926,14 @@ svg { display: block; }
             <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none">
               <defs>
                 <linearGradient id="spark-accent" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0" stop-color="#C5D63F" stop-opacity="0.55"/>
-                  <stop offset="1" stop-color="#C5D63F" stop-opacity="0"/>
+                  <stop offset="0" stop-color="#2563EB" stop-opacity="0.32"/>
+                  <stop offset="1" stop-color="#2563EB" stop-opacity="0"/>
                 </linearGradient>
               </defs>
               <polygon points="0,18 14,17 28,16 42,14 56,9 70,11 84,7 100,5 100,28 0,28"
                 fill="url(#spark-accent)"/>
               <polyline points="0,18 14,17 28,16 42,14 56,9 70,11 84,7 100,5"
-                fill="none" stroke="#4A5210" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                fill="none" stroke="#2563EB" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
         </div>
@@ -948,7 +963,7 @@ svg { display: block; }
             </span>
             <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none">
               <polyline points="0,8 14,10 28,9 42,12 56,14 70,16 84,18 100,21"
-                fill="none" stroke="#4A453E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                fill="none" stroke="#4B5563" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
         </div>
@@ -974,21 +989,21 @@ svg { display: block; }
             <div class="donut-wrap">
               <svg viewBox="0 0 36 36" width="160" height="160">
                 <!-- track -->
-                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#EDE6D8" stroke-width="3"/>
-                <!-- full-time 68% -->
-                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#1A1714" stroke-width="3"
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#EEF2F8" stroke-width="3"/>
+                <!-- full-time 68% — Ink -->
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#0B0F1A" stroke-width="3"
                         stroke-dasharray="67.9 100" stroke-dashoffset="25" stroke-linecap="butt"
                         transform="rotate(-90 18 18)"/>
-                <!-- contract 18% -->
-                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#8A8276" stroke-width="3"
+                <!-- contract 18% — Slate -->
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#64748B" stroke-width="3"
                         stroke-dasharray="18 100" stroke-dashoffset="-43" stroke-linecap="butt"
                         transform="rotate(-90 18 18)"/>
-                <!-- part-time 9% -->
-                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#C9C0AC" stroke-width="3"
+                <!-- part-time 9% — Ash -->
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#CBD5E1" stroke-width="3"
                         stroke-dasharray="9 100" stroke-dashoffset="-61" stroke-linecap="butt"
                         transform="rotate(-90 18 18)"/>
-                <!-- intern 5% — THE Radium slice -->
-                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#C5D63F" stroke-width="3"
+                <!-- intern 5% — Cobalt highlight slice -->
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#2563EB" stroke-width="3"
                         stroke-dasharray="5 100" stroke-dashoffset="-70" stroke-linecap="butt"
                         transform="rotate(-90 18 18)"/>
               </svg>
@@ -1001,10 +1016,10 @@ svg { display: block; }
             </div>
 
             <div class="donut-legend">
-              <div class="legend-row"><span class="legend-swatch" style="background:#1A1714"></span> Full-time <span class="num">87</span></div>
-              <div class="legend-row"><span class="legend-swatch" style="background:#8A8276"></span> Contract <span class="num">23</span></div>
-              <div class="legend-row"><span class="legend-swatch" style="background:#C9C0AC"></span> Part-time <span class="num">12</span></div>
-              <div class="legend-row"><span class="legend-swatch" style="background:#C5D63F"></span> Intern <span class="num">6</span></div>
+              <div class="legend-row"><span class="legend-swatch" style="background:#0B0F1A"></span> Full-time <span class="num">87</span></div>
+              <div class="legend-row"><span class="legend-swatch" style="background:#64748B"></span> Contract <span class="num">23</span></div>
+              <div class="legend-row"><span class="legend-swatch" style="background:#CBD5E1"></span> Part-time <span class="num">12</span></div>
+              <div class="legend-row"><span class="legend-swatch" style="background:#2563EB"></span> Intern <span class="num">6</span></div>
             </div>
           </div>
         </div>
