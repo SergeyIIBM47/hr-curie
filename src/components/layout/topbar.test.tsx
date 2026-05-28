@@ -6,6 +6,7 @@ import type { Role } from "@prisma/client";
 
 vi.mock("next/navigation", () => ({
   usePathname: vi.fn(),
+  useSearchParams: vi.fn(() => new URLSearchParams()),
 }));
 
 vi.mock("next-auth/react", () => ({
@@ -40,59 +41,49 @@ const testUser: TestUser = {
   role: "ADMIN",
 };
 
+const counts = { employees: 128, pendingLeave: 7 };
+
 describe("Topbar", () => {
-  it("renders user initials as avatar fallback", () => {
+  it("renders the breadcrumb root crumb", () => {
     vi.mocked(usePathname).mockReturnValue("/");
-    render(<Topbar user={testUser} />);
-    expect(screen.getByText("SA")).toBeInTheDocument();
+    render(<Topbar user={testUser} counts={counts} />);
+    expect(screen.getByText("workspace")).toBeInTheDocument();
   });
 
-  it('shows "Overview" title for / path', () => {
+  it('shows "overview" crumb for the / path', () => {
     vi.mocked(usePathname).mockReturnValue("/");
-    render(<Topbar user={testUser} />);
-    expect(
-      screen.getByRole("heading", { name: "Overview" }),
-    ).toBeInTheDocument();
+    render(<Topbar user={testUser} counts={counts} />);
+    expect(screen.getByText("overview")).toBeInTheDocument();
   });
 
-  it('shows "My Profile" title for /profile path', () => {
+  it("shows the route segment in the breadcrumb for /profile", () => {
     vi.mocked(usePathname).mockReturnValue("/profile");
-    render(<Topbar user={testUser} />);
-    expect(
-      screen.getByRole("heading", { name: "My Profile" }),
-    ).toBeInTheDocument();
+    render(<Topbar user={testUser} counts={counts} />);
+    expect(screen.getByText("profile")).toBeInTheDocument();
   });
 
-  it('shows "Employees" title for /employees path', () => {
+  it("shows the route segment in the breadcrumb for /employees", () => {
     vi.mocked(usePathname).mockReturnValue("/employees");
-    render(<Topbar user={testUser} />);
-    expect(
-      screen.getByRole("heading", { name: "Employees" }),
-    ).toBeInTheDocument();
+    render(<Topbar user={testUser} counts={counts} />);
+    expect(screen.getByText("employees")).toBeInTheDocument();
   });
 
-  it('shows "Employees" title for nested /employees/123 path', () => {
-    vi.mocked(usePathname).mockReturnValue("/employees/123");
-    render(<Topbar user={testUser} />);
-    expect(
-      screen.getByRole("heading", { name: "Employees" }),
-    ).toBeInTheDocument();
-  });
-
-  it('shows "Dashboard" as fallback title for unknown path', () => {
-    vi.mocked(usePathname).mockReturnValue("/unknown");
-    render(<Topbar user={testUser} />);
-    expect(
-      screen.getByRole("heading", { name: "Dashboard" }),
-    ).toBeInTheDocument();
-  });
-
-  it("renders with user who has an image", () => {
+  it("renders the disabled search pill with placeholder copy", () => {
     vi.mocked(usePathname).mockReturnValue("/");
-    const userWithImage = { ...testUser, image: "https://example.com/avatar.jpg" };
-    render(<Topbar user={userWithImage} />);
+    render(<Topbar user={testUser} counts={counts} />);
+    expect(screen.getByText(/Search people, leave, meetings/)).toBeInTheDocument();
+  });
 
-    // Initials fallback still present (image may not load in jsdom)
-    expect(screen.getByText("SA")).toBeInTheDocument();
+  it("renders the notifications bell button", () => {
+    vi.mocked(usePathname).mockReturnValue("/");
+    render(<Topbar user={testUser} counts={counts} />);
+    expect(screen.getByLabelText("Notifications")).toBeInTheDocument();
+  });
+
+  it("marks the last crumb with aria-current=page", () => {
+    vi.mocked(usePathname).mockReturnValue("/employees");
+    render(<Topbar user={testUser} counts={counts} />);
+    const current = screen.getByText("employees");
+    expect(current).toHaveAttribute("aria-current", "page");
   });
 });

@@ -8,9 +8,9 @@ test.describe("Admin sidebar navigation", () => {
     await expect(page).toHaveURL(/\/profile/);
 
     const profileLink = page.getByRole("link", { name: "My Profile" });
-    await expect(profileLink).toHaveClass(/border-\[#007AFF\]/);
+    await expect(profileLink).toHaveAttribute("aria-current", "page");
 
-    await page.getByRole("link", { name: "Employees" }).click();
+    await page.getByRole("link", { name: /^Employees/ }).click();
     await expect(page).toHaveURL(/\/employees/);
   });
 
@@ -18,10 +18,22 @@ test.describe("Admin sidebar navigation", () => {
     await page.goto("/");
 
     await expect(page.getByRole("link", { name: "My Profile" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Employees" })).toBeVisible();
+    await expect(page.getByRole("link", { name: /^Employees/ })).toBeVisible();
     await expect(page.getByRole("link", { name: "Settings" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Leave" })).toBeVisible();
+    await expect(page.getByRole("link", { name: /^Leave/ })).toBeVisible();
     await expect(page.getByRole("link", { name: "Calendar" })).toBeVisible();
+  });
+
+  test("topbar renders breadcrumb, search, and notifications", async ({
+    adminPage: page,
+  }) => {
+    await page.goto("/");
+
+    await expect(page.getByText("workspace")).toBeVisible();
+    await expect(page.getByText(/Search people, leave, meetings/)).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Notifications" }),
+    ).toBeVisible();
   });
 });
 
@@ -34,7 +46,7 @@ test.describe("Employee sidebar navigation", () => {
     await expect(page.getByRole("link", { name: "My Profile" })).toBeVisible();
 
     await expect(
-      page.getByRole("link", { name: "Employees" }),
+      page.getByRole("link", { name: /^Employees/ }),
     ).not.toBeVisible();
     await expect(
       page.getByRole("link", { name: "Settings" }),

@@ -1,11 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
-import { LogOut } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { navItems, getInitials } from "@/components/layout/nav-items";
+import { usePathname, useSearchParams } from "next/navigation";
+import { ChevronRight } from "lucide-react";
+import {
+  navItems,
+  favoritesItems,
+  buildCurrentHref,
+  getInitials,
+  isNavHrefActive,
+  type NavItem,
+  type NavCounts,
+} from "@/components/layout/nav-items";
+import { cn } from "@/lib/utils";
 import type { Role } from "@prisma/client";
 
 interface SidebarProps {
@@ -15,79 +22,240 @@ interface SidebarProps {
     role: Role;
     image?: string;
   };
+  counts: NavCounts;
 }
 
-export function Sidebar({ user }: SidebarProps) {
+export function Sidebar({ user, counts }: SidebarProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentHref = buildCurrentHref(pathname, searchParams);
 
-  function isActive(href: string): boolean {
-    if (href === "/") return pathname === "/";
-    return pathname.startsWith(href);
-  }
+  const canViewItem = (item: NavItem) =>
+    !(item.adminOnly && user.role !== "ADMIN");
+  const visibleMain = navItems.filter(canViewItem);
+  const visibleFavorites = favoritesItems.filter(canViewItem);
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-[260px] flex-col border-r border-[#C6C6C8] glass-heavy md:flex">
-      <div className="p-6">
-        <span className="text-[17px] font-semibold text-[#007AFF]">
-          HR Curie
+    <aside
+      aria-label="Primary"
+      data-sidebar="desktop"
+      className={cn(`
+        sticky top-0 z-30
+        hidden h-screen
+        w-[60px] shrink-0
+        flex-col
+        bg-[var(--color-curie-bg)]
+        px-4 pb-5 pt-7
+        md:flex
+        lg:w-[var(--curie-sidebar-w)]
+      `)}
+    >
+      {/* Brand */}
+      <Link
+        href="/"
+        className="mb-7 flex items-center gap-2.5 px-3 lg:gap-2.5"
+        aria-label="HR Curie home"
+      >
+        <span
+          className={cn(`
+            grid h-7 w-7 place-items-center
+            rounded-[var(--radius-curie-sm)]
+            bg-[var(--color-curie-brand)]
+            text-[18px] font-medium leading-none
+            text-[var(--color-curie-fg-on-brand)]
+            font-[family-name:var(--font-curie-display)]
+      `)}
+          aria-hidden="true"
+        >
+          C
         </span>
-      </div>
+        <span
+          className={cn(`
+            hidden lg:inline
+            font-[family-name:var(--font-curie-display)]
+            text-[20px] font-medium
+            text-[var(--color-curie-fg)]
+      `)}
+        >
+          HR&nbsp;Curie
+        </span>
+      </Link>
 
-      <nav aria-label="Main navigation" className="flex-1 overflow-y-auto px-0 py-2">
-        {navItems.map((item) => {
-          if (item.adminOnly && user.role !== "ADMIN") return null;
-
-          const active = isActive(item.href);
-          const Icon = item.icon;
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={active ? "page" : undefined}
-              className={`mx-3 mb-0.5 flex h-[44px] items-center gap-3 rounded-[8px] px-3 transition-colors duration-150 ${
-                active
-                  ? "border-l-[3px] border-[#007AFF] bg-[#007AFF]/10 text-[#007AFF]"
-                  : "text-[#1D1D1F] hover:bg-[#E5E5EA]"
-              }`}
-            >
-              <Icon className="size-5 shrink-0" strokeWidth={1.75} />
-              <span className="text-[15px] font-medium">{item.label}</span>
-              {item.adminOnly && (
-                <span className="ml-auto rounded-[6px] bg-[#5856D6]/15 px-1.5 py-0.5 text-[11px] font-semibold uppercase text-[#5856D6]">
-                  Admin
-                </span>
-              )}
-            </Link>
-          );
-        })}
+      <nav
+        aria-label="Main navigation"
+        className="flex flex-1 flex-col gap-7 overflow-y-auto"
+      >
+        <NavSection
+          title="Main menu"
+          items={visibleMain}
+          currentHref={currentHref}
+          counts={counts}
+        />
+        <NavSection
+          title="Favorites"
+          items={visibleFavorites}
+          currentHref={currentHref}
+          counts={counts}
+        />
       </nav>
 
-      <div className="border-t border-[#C6C6C8] p-4">
-        <div className="flex items-center gap-3">
-          <Avatar className="size-10">
-            {user.image && <AvatarImage src={user.image} alt={user.name} />}
-            <AvatarFallback className="bg-[#007AFF]/10 text-[13px] font-semibold text-[#007AFF]">
-              {getInitials(user.name)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 overflow-hidden">
-            <p className="truncate text-[14px] font-medium text-[#1D1D1F]">
-              {user.name}
-            </p>
-            <p className="truncate text-[12px] text-[#8E8E93]">
-              {user.role === "ADMIN" ? "Administrator" : "Employee"}
-            </p>
-          </div>
-          <button
-            onClick={() => void signOut({ callbackUrl: "/login" })}
-            className="rounded-[8px] p-2 text-[#8E8E93] transition-colors duration-150 hover:bg-[#E5E5EA] hover:text-[#FF3B30]"
-            aria-label="Sign out"
+      {/* Account block */}
+      <div className="hidden lg:block">
+        <Link
+          href="/profile"
+          className={cn(`
+            mt-4 -mx-4 flex items-center gap-2.5
+            border-t border-[var(--color-curie-border)]
+            px-7 pb-1 pt-3.5
+            transition-colors hover:bg-[var(--color-curie-surface-sunken)]
+      `)}
+        >
+          <span
+            className={cn(`
+            grid h-9 w-9 place-items-center
+              rounded-[var(--radius-curie-pill)]
+              bg-[var(--color-curie-brand-soft)] text-[var(--color-curie-brand-ink)]
+              font-[family-name:var(--font-curie-display)]
+              text-[13px] font-medium
+      `)}
+            aria-hidden="true"
           >
-            <LogOut className="size-[18px]" strokeWidth={1.75} />
-          </button>
-        </div>
+            {getInitials(user.name)}
+          </span>
+          <span className="min-w-0 flex-1 leading-tight">
+            <span className="block truncate text-[13px] font-semibold text-[var(--color-curie-fg)]">
+              {user.name}
+            </span>
+            <span className="block truncate text-[12px] text-[var(--color-curie-fg-muted)]">
+              {user.role === "ADMIN" ? "Administrator" : "Employee"}
+            </span>
+          </span>
+          <ChevronRight
+            className="size-4 shrink-0 text-[var(--color-curie-fg-muted)]"
+            strokeWidth={1.5}
+            aria-hidden="true"
+          />
+        </Link>
       </div>
     </aside>
+  );
+}
+
+interface NavSectionProps {
+  title: string;
+  items: NavItem[];
+  currentHref: string;
+  counts: NavCounts;
+}
+
+function NavSection({ title, items, currentHref, counts }: NavSectionProps) {
+  if (items.length === 0) return null;
+
+  return (
+    <div className="flex flex-col">
+      <span
+        className={cn(`
+          hidden lg:block
+          px-3 pb-2
+          text-[11px] font-medium uppercase tracking-[0.08em]
+          text-[var(--color-curie-fg-muted)]
+      `)}
+      >
+        {title}
+      </span>
+      <ul className="flex flex-col gap-0.5">
+        {items.map((item) => (
+          <NavItemLink
+            key={item.href + item.label}
+            item={item}
+            active={isNavHrefActive(currentHref, item.href)}
+            counts={counts}
+          />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+interface NavItemLinkProps {
+  item: NavItem;
+  active: boolean;
+  counts: NavCounts;
+}
+
+function NavItemLink({ item, active, counts }: NavItemLinkProps) {
+  const Icon = item.icon;
+  const count = item.countKey ? counts[item.countKey] : undefined;
+  const showCount = typeof count === "number" && count > 0;
+
+  return (
+    <li className="relative">
+      <Link
+        href={item.href}
+        aria-current={active ? "page" : undefined}
+        title={item.label}
+        className={cn(`
+          relative flex items-center gap-2.5
+          rounded-[var(--radius-curie-sm)]
+          px-3 py-2
+          text-[14px] font-medium
+          transition-colors
+          ${
+            active
+              ? "bg-[var(--color-curie-brand-wash)] text-[var(--color-curie-fg)]"
+              : "text-[var(--color-curie-fg-secondary)] hover:bg-[var(--color-curie-surface-sunken)]"
+          }
+        `)}
+      >
+        {active ? (
+          <span
+            aria-hidden="true"
+            className={cn(`
+              absolute -left-4 top-2 bottom-2
+              w-[3px]
+              rounded-r-[var(--radius-curie-xs)]
+              bg-[var(--color-curie-brand)]
+      `)}
+          />
+        ) : null}
+        <Icon
+          className="size-4 shrink-0"
+          strokeWidth={1.5}
+          aria-hidden="true"
+        />
+        <span className="hidden flex-1 truncate lg:block">{item.label}</span>
+
+        {showCount ? (
+          item.countKind === "pill" ? (
+            <span
+              className={cn(`
+                ml-auto hidden lg:inline-flex
+                h-[22px] items-center
+                rounded-[var(--radius-curie-pill)]
+                bg-[var(--color-curie-brand-soft)]
+                px-2.5
+                font-[family-name:var(--font-curie-mono)]
+                text-[11px] font-medium
+                text-[var(--color-curie-brand-ink)]
+      `)}
+              aria-label={`${count} pending`}
+            >
+              {count}
+            </span>
+          ) : (
+            <span
+              className={cn(`
+                ml-auto hidden lg:inline
+                font-[family-name:var(--font-curie-mono)]
+                text-[11px]
+                text-[var(--color-curie-fg-muted)]
+      `)}
+            >
+              {count}
+            </span>
+          )
+        ) : null}
+      </Link>
+    </li>
   );
 }
