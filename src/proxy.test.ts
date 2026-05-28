@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest, NextResponse } from "next/server";
+import type { Session } from "next-auth";
 
 vi.mock("@/lib/auth", () => ({
   auth: vi.fn(),
@@ -8,14 +9,14 @@ vi.mock("@/lib/auth", () => ({
 import { proxy } from "./proxy";
 import { auth } from "@/lib/auth";
 
-const mockedAuth = vi.mocked(auth);
+const mockedAuth = vi.mocked(auth as unknown as () => Promise<Session | null>);
 
-const adminSession = {
+const adminSession: Session = {
   user: { id: "admin-001", email: "sofia@company.com", role: "ADMIN", name: "Sofia Admin" },
   expires: new Date(Date.now() + 86400_000).toISOString(),
 };
 
-const employeeSession = {
+const employeeSession: Session = {
   user: { id: "emp-001", email: "john@company.com", role: "EMPLOYEE", name: "John Employee" },
   expires: new Date(Date.now() + 86400_000).toISOString(),
 };

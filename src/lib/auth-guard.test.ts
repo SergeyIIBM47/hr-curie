@@ -16,7 +16,7 @@ vi.mock("next/navigation", () => ({
 import { requireAuth, requireApiAuth } from "@/lib/auth-guard";
 import { auth } from "@/lib/auth";
 
-const mockedAuth = vi.mocked(auth);
+const mockedAuth = vi.mocked(auth as unknown as () => Promise<Session | null>);
 
 const adminSession: Session = {
   user: {
