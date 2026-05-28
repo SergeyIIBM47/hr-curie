@@ -1,8 +1,10 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireAuth } from "@/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
 import { DetailField } from "@/components/shared/detail-field";
-import { getInitials, formatDateUTC, isHttpUrl } from "@/lib/utils";
+import { Btn, Pill } from "@/components/curie";
+import { cn, getInitials, formatDateUTC, isHttpUrl } from "@/lib/utils";
 
 export default async function ProfilePage() {
   const session = await requireAuth();
@@ -10,6 +12,7 @@ export default async function ProfilePage() {
   const employee = await prisma.employee.findUnique({
     where: { userId: session.user.id },
     select: {
+      id: true,
       firstName: true,
       lastName: true,
       workEmail: true,
@@ -35,53 +38,104 @@ export default async function ProfilePage() {
 
   const fullName = `${employee.firstName} ${employee.lastName}`;
   const roleBadge = employee.user.role === "ADMIN" ? "Admin" : "Employee";
+  const isAdmin = employee.user.role === "ADMIN";
   const linkedinHref =
     employee.linkedinUrl && isHttpUrl(employee.linkedinUrl)
       ? employee.linkedinUrl
       : undefined;
 
   return (
-    <div>
-      {/* Header */}
-      <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-        <div className="flex size-[96px] shrink-0 items-center justify-center rounded-full bg-[#E5E5EA]">
-          {employee.avatarUrl && isHttpUrl(employee.avatarUrl) ? (
-            <img
-              src={employee.avatarUrl}
-              alt={fullName}
-              className="size-full rounded-full object-cover"
-            />
-          ) : (
-            <span className="text-[28px] font-bold text-[#8E8E93]">
-              {getInitials(fullName)}
-            </span>
-          )}
-        </div>
-
-        <div className="flex flex-col items-center gap-2 sm:items-start">
-          <h1 className="text-[28px] font-bold text-[#1D1D1F]">{fullName}</h1>
-          {employee.position && (
-            <p className="text-[15px] text-[#8E8E93]">{employee.position}</p>
-          )}
-          <span
-            className={`rounded-[6px] px-2 py-0.5 text-[12px] font-semibold uppercase ${
-              employee.user.role === "ADMIN"
-                ? "bg-[#5856D6]/15 text-[#5856D6]"
-                : "bg-[#007AFF]/10 text-[#007AFF]"
-            }`}
+    <div className="flex flex-col gap-6">
+      {/* Header card */}
+      <div
+        className={cn(
+          "rounded-[var(--radius-curie-lg)] p-6",
+          "bg-[var(--color-curie-surface)]",
+          "border border-[var(--color-curie-border)]",
+          "shadow-[var(--shadow-curie-soft)]",
+        )}
+      >
+        <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+          <div
+            className={cn(
+              "size-[96px] shrink-0",
+              "flex items-center justify-center",
+              "rounded-full bg-[var(--color-curie-surface-sunken)]",
+              "overflow-hidden",
+            )}
           >
-            {roleBadge}
-          </span>
+            {employee.avatarUrl && isHttpUrl(employee.avatarUrl) ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={employee.avatarUrl}
+                alt={fullName}
+                className="size-full object-cover"
+              />
+            ) : (
+              <span
+                className={cn(
+                  "font-[family-name:var(--font-curie-display)]",
+                  "text-[28px] font-medium",
+                  "text-[var(--color-curie-fg-secondary)]",
+                )}
+              >
+                {getInitials(fullName)}
+              </span>
+            )}
+          </div>
+
+          <div className="flex flex-1 flex-col items-center gap-2 sm:items-start">
+            <h1
+              className={cn(
+                "font-[family-name:var(--font-curie-display)]",
+                "text-[28px] font-medium leading-tight tracking-[-0.015em]",
+                "text-[var(--color-curie-fg)]",
+              )}
+            >
+              {fullName}
+            </h1>
+            {employee.position ? (
+              <p className="text-[15px] text-[var(--color-curie-fg-secondary)]">
+                {employee.position}
+              </p>
+            ) : null}
+            <Pill variant="role" className="uppercase">
+              {roleBadge}
+            </Pill>
+          </div>
+
+          {isAdmin ? (
+            <div className="sm:self-start">
+              <Link href={`/employees/${employee.id}/edit`}>
+                <Btn variant="primary" size="sm">
+                  Edit
+                </Btn>
+              </Link>
+            </div>
+          ) : null}
         </div>
       </div>
 
       {/* Info Card */}
-      <div className="mt-6 rounded-[10px] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]">
-        <h2 className="mb-5 text-[20px] font-semibold text-[#1D1D1F]">
+      <div
+        className={cn(
+          "rounded-[var(--radius-curie-lg)] p-6",
+          "bg-[var(--color-curie-surface)]",
+          "border border-[var(--color-curie-border)]",
+          "shadow-[var(--shadow-curie-soft)]",
+        )}
+      >
+        <h2
+          className={cn(
+            "mb-6 font-[family-name:var(--font-curie-display)]",
+            "text-[20px] font-medium leading-tight tracking-[-0.015em]",
+            "text-[var(--color-curie-fg)]",
+          )}
+        >
           Personal Information
         </h2>
 
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2">
           <DetailField label="First Name" value={employee.firstName} />
           <DetailField label="Last Name" value={employee.lastName} />
           <DetailField label="Work Email" value={employee.workEmail} />
@@ -97,44 +151,41 @@ export default async function ProfilePage() {
             label="Actual Residence"
             value={employee.actualResidence}
           />
-          <DetailField
-            label="Start Year"
-            value={String(employee.startYear)}
-          />
-          {employee.phone && (
+          <DetailField label="Start Year" value={String(employee.startYear)} />
+          {employee.phone ? (
             <DetailField label="Phone" value={employee.phone} />
-          )}
-          {employee.department && (
+          ) : null}
+          {employee.department ? (
             <DetailField label="Department" value={employee.department} />
-          )}
-          {employee.location && (
+          ) : null}
+          {employee.location ? (
             <DetailField label="Location" value={employee.location} />
-          )}
-          {employee.education && (
+          ) : null}
+          {employee.education ? (
             <DetailField label="Education" value={employee.education} />
-          )}
-          {employee.certifications && (
+          ) : null}
+          {employee.certifications ? (
             <DetailField
               label="Certifications"
               value={employee.certifications}
             />
-          )}
-          {employee.healthInsurance && (
+          ) : null}
+          {employee.healthInsurance ? (
             <DetailField
               label="Health Insurance"
               value={employee.healthInsurance}
             />
-          )}
-          {employee.tshirtSize && (
+          ) : null}
+          {employee.tshirtSize ? (
             <DetailField label="T-Shirt Size" value={employee.tshirtSize} />
-          )}
-          {employee.linkedinUrl && (
+          ) : null}
+          {employee.linkedinUrl ? (
             <DetailField
               label="LinkedIn"
               value={employee.linkedinUrl}
               href={linkedinHref}
             />
-          )}
+          ) : null}
         </div>
       </div>
     </div>

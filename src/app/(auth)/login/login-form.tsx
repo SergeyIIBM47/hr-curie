@@ -5,6 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { loginSchema } from "@/lib/validations/auth";
+import { Btn } from "@/components/curie";
+import { cn } from "@/lib/utils";
 import type { z } from "zod";
 
 type LoginValues = z.infer<typeof loginSchema>;
@@ -14,6 +16,17 @@ async function getCsrfToken(): Promise<string> {
   const data = await res.json();
   return data.csrfToken;
 }
+
+const FIELD_CLASS = cn(
+  "h-11 w-full rounded-[var(--radius-curie-sm)] px-3.5",
+  "bg-[var(--color-curie-surface)]",
+  "border border-[var(--color-curie-border)]",
+  "text-[15px] text-[var(--color-curie-fg)]",
+  "placeholder:text-[var(--color-curie-fg-muted)]",
+  "transition-colors outline-none",
+  "focus:border-[var(--color-curie-brand)]",
+  "focus:ring-2 focus:ring-[var(--color-curie-brand)]/20",
+);
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -29,11 +42,20 @@ export function LoginForm() {
 
   async function onSubmit(data: LoginValues) {
     setError(null);
-    console.log("[LOGIN] Submitting login for:", data.email);
 
     try {
+      const rateLimitRes = await fetch("/api/auth/rate-limit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: data.email }),
+      });
+
+      if (rateLimitRes.status === 429) {
+        setError("Too many login attempts. Try again in 15 minutes.");
+        return;
+      }
+
       const csrfToken = await getCsrfToken();
-      console.log("[LOGIN] Got CSRF token:", csrfToken ? "yes" : "no");
 
       const res = await fetch("/api/auth/callback/credentials", {
         method: "POST",
@@ -47,46 +69,65 @@ export function LoginForm() {
         redirect: "manual",
       });
 
-      console.log("[LOGIN] Response status:", res.status, "type:", res.type);
-      console.log("[LOGIN] Response headers location:", res.headers.get("location"));
-
-      // status 0 + opaqueredirect = fetch with redirect:"manual" captured a redirect
       if (res.status === 0 || res.type === "opaqueredirect") {
-        // Successful login — session cookie is set, navigate to dashboard
-        console.log("[LOGIN] Redirect captured (success), navigating to /");
         window.location.href = "/";
         return;
       }
 
       if (res.ok) {
-        // 200 with redirect:"manual" — check if it's an error page
         const url = new URL(res.url);
         if (url.pathname.includes("/error") || url.searchParams.has("error")) {
-          const errorCode = url.searchParams.get("error") ?? "Unknown";
-          console.error("[LOGIN] Auth error:", errorCode);
-          setError(`Authentication error: ${errorCode}`);
+          setError("Invalid email or password");
           return;
         }
-        console.log("[LOGIN] OK response, navigating to /");
         window.location.href = "/";
         return;
       }
 
-      // Non-OK, non-redirect — unexpected
-      const body = await res.text().catch(() => "(no body)");
-      console.error("[LOGIN] Unexpected response:", res.status, body);
-      setError(`Server error (${res.status})`);
+      setError("Invalid email or password");
     } catch (err) {
-      console.error("[LOGIN] Exception during login:", err);
-      setError(`Exception: ${err instanceof Error ? err.message : String(err)}`);
+      setError(
+        err instanceof Error ? err.message : "An unexpected error occurred",
+      );
     }
   }
 
   return (
-    <div className="w-full max-w-[400px] rounded-[14px] bg-white p-8 shadow-[0_4px_24px_rgba(0,0,0,0.08)]">
-      <h1 className="mb-6 text-center text-[28px] font-bold text-[#007AFF]">
-        HR Curie
-      </h1>
+    <div
+      className={cn(
+        "w-full",
+        "rounded-[var(--radius-curie-lg)]",
+        "bg-[var(--color-curie-surface)]",
+        "border border-[var(--color-curie-border)]",
+        "p-8 shadow-[var(--shadow-curie-soft)]",
+      )}
+    >
+      <div className="mb-8 flex flex-col items-center gap-2">
+        <span
+          aria-hidden="true"
+          className={cn(
+            "grid place-items-center size-11",
+            "rounded-[var(--radius-curie-md)]",
+            "bg-[var(--color-curie-brand)] text-[var(--color-curie-fg-on-brand)]",
+            "font-[family-name:var(--font-curie-display)]",
+            "text-[20px] font-medium leading-none",
+          )}
+        >
+          C
+        </span>
+        <h1
+          className={cn(
+            "font-[family-name:var(--font-curie-display)]",
+            "text-[26px] font-medium leading-tight tracking-[-0.015em]",
+            "text-[var(--color-curie-fg)]",
+          )}
+        >
+          HR Curie
+        </h1>
+        <p className="text-[13px] text-[var(--color-curie-fg-secondary)]">
+          Sign in to continue
+        </p>
+      </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <input
@@ -94,7 +135,7 @@ export function LoginForm() {
           type="email"
           placeholder="Email"
           autoComplete="email"
-          className="h-[44px] rounded-[8px] bg-[rgba(120,120,128,0.12)] px-3 text-[17px] outline-none placeholder:text-[rgba(60,60,67,0.3)] focus:ring-2 focus:ring-[#007AFF]/40"
+          className={FIELD_CLASS}
         />
 
         <div className="relative">
@@ -103,37 +144,50 @@ export function LoginForm() {
             type={showPassword ? "text" : "password"}
             placeholder="Password"
             autoComplete="current-password"
-            className="h-[44px] w-full rounded-[8px] bg-[rgba(120,120,128,0.12)] px-3 pr-10 text-[17px] outline-none placeholder:text-[rgba(60,60,67,0.3)] focus:ring-2 focus:ring-[#007AFF]/40"
+            className={cn(FIELD_CLASS, "pr-11")}
           />
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-3 top-1/2 flex size-[44px] -translate-y-1/2 items-center justify-center text-[rgba(60,60,67,0.6)] transition-colors duration-150 hover:text-[rgba(60,60,67,0.8)]"
+            className={cn(
+              "absolute right-2 top-1/2 -translate-y-1/2",
+              "grid size-8 place-items-center",
+              "rounded-[var(--radius-curie-sm)]",
+              "text-[var(--color-curie-fg-secondary)]",
+              "transition-colors hover:bg-[var(--color-curie-surface-sunken)]",
+            )}
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? (
-              <EyeOff className="size-5" aria-hidden="true" />
+              <EyeOff className="size-4" aria-hidden="true" />
             ) : (
-              <Eye className="size-5" aria-hidden="true" />
+              <Eye className="size-4" aria-hidden="true" />
             )}
           </button>
         </div>
 
-        <button
+        <Btn
           type="submit"
+          variant="primary"
+          size="md"
           disabled={isSubmitting}
-          className="h-[44px] w-full rounded-[8px] bg-[#007AFF] text-[17px] font-semibold text-white transition-all duration-150 [transition-timing-function:cubic-bezier(0.25,0.1,0.25,1)] hover:brightness-110 active:scale-[0.98] disabled:opacity-60"
+          className="mt-2 w-full"
         >
           {isSubmitting ? (
-            <Loader2 className="mx-auto size-5 animate-spin" />
+            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
           ) : (
             "Sign In"
           )}
-        </button>
+        </Btn>
 
-        {error && (
-          <p className="mt-2 text-[13px] text-[#FF3B30]">{error}</p>
-        )}
+        {error ? (
+          <p
+            role="alert"
+            className="mt-1 text-[13px] text-[var(--color-curie-danger)]"
+          >
+            {error}
+          </p>
+        ) : null}
       </form>
     </div>
   );

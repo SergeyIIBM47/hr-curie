@@ -1,30 +1,42 @@
+import { cn } from "@/lib/utils";
+
 interface DetailFieldProps {
   label: string;
   value: string | null | undefined;
   href?: string;
 }
 
+const LABEL_CLASS = cn(
+  "mb-1 text-[11px] font-medium uppercase tracking-[0.06em]",
+  "font-[family-name:var(--font-curie-mono)]",
+  "text-[var(--color-curie-fg-muted)]",
+);
+
+const VALUE_CLASS = "text-[15px] text-[var(--color-curie-fg)]";
+
 export function DetailField({ label, value, href }: DetailFieldProps) {
+  const hasValue = value != null && value !== "";
+
   return (
     <div>
-      <p className="mb-1 text-[13px] font-semibold uppercase tracking-wider text-[#8E8E93]">
-        {label}
-      </p>
-      {value != null && value !== "" ? (
+      <p className={LABEL_CLASS}>{label}</p>
+      {hasValue ? (
         href ? (
           <a
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[17px] text-[#007AFF] hover:underline"
+            className={cn(VALUE_CLASS, "text-[var(--color-curie-brand)] hover:underline")}
           >
             {value}
           </a>
         ) : (
-          <p className="text-[17px] text-[#1D1D1F]">{value}</p>
+          <p className={VALUE_CLASS}>{value}</p>
         )
       ) : (
-        <p className="text-[17px] text-[#AEAEB2]">&mdash;</p>
+        <p className={cn(VALUE_CLASS, "text-[var(--color-curie-fg-muted)]")}>
+          &mdash;
+        </p>
       )}
     </div>
   );
