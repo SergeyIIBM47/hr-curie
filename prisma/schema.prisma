@@ -25,6 +25,32 @@ enum LeaveStatus {
   REJECTED
 }
 
+enum AnnouncementTag {
+  POLICY
+  TEAM
+  HR
+  EVENT
+}
+
+enum OnboardingStatus {
+  ON_TRACK
+  AT_RISK
+  BLOCKED
+  COMPLETE
+}
+
+enum StepStatus {
+  DONE
+  CURRENT
+  UPCOMING
+}
+
+enum JobStatus {
+  OPEN
+  PAUSED
+  FILLED
+}
+
 model User {
   id           String    @id @default(cuid())
   email        String    @unique
@@ -36,6 +62,7 @@ model User {
   employee      Employee?
   leaveRequests LeaveRequest[]
   meetings      MeetingParticipant[]
+  announcements Announcement[]
 
   @@map("users")
 }
@@ -54,6 +81,7 @@ model Employee {
   dateOfBirth      DateTime       @map("date_of_birth") @db.Date
   actualResidence  String         @map("actual_residence")
   startYear        Int            @map("start_year")
+  startDate        DateTime?      @map("start_date") @db.Date
 
   // --- Optional ---
   phone           String?
@@ -69,6 +97,8 @@ model Employee {
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+
+  onboardingPlan OnboardingPlan?
 
   @@index([lastName])
   @@index([department])
@@ -129,4 +159,59 @@ model MeetingParticipant {
 
   @@unique([meetingId, userId])
   @@map("meeting_participants")
+}
+
+model Announcement {
+  id        String          @id @default(cuid())
+  authorId  String          @map("author_id")
+  author    User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  tag       AnnouncementTag
+  createdAt DateTime        @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("announcements")
+}
+
+model OnboardingPlan {
+  id         String           @id @default(cuid())
+  employeeId String           @unique @map("employee_id")
+  employee   Employee         @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  startDate  DateTime         @map("start_date") @db.Date
+  status     OnboardingStatus @default(ON_TRACK)
+  notes      String?
+  steps      OnboardingStep[]
+  createdAt  DateTime         @default(now()) @map("created_at")
+  updatedAt  DateTime         @updatedAt @map("updated_at")
+
+  @@map("onboarding_plans")
+}
+
+model OnboardingStep {
+  id          String         @id @default(cuid())
+  planId      String         @map("plan_id")
+  plan        OnboardingPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  ord         Int
+  label       String
+  status      StepStatus     @default(UPCOMING)
+  completedAt DateTime?      @map("completed_at")
+
+  @@unique([planId, ord])
+  @@map("onboarding_steps")
+}
+
+model JobRequisition {
+  id         String    @id @default(cuid())
+  title      String
+  department String
+  location   String?
+  status     JobStatus @default(OPEN)
+  priority   Boolean   @default(false)
+  openedAt   DateTime  @default(now()) @map("opened_at")
+  filledAt   DateTime? @map("filled_at")
+  filledById String?   @unique @map("filled_by_id")
+
+  @@index([status])
+  @@map("job_requisitions")
 }
