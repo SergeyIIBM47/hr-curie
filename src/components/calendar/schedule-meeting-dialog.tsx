@@ -213,20 +213,21 @@ export function ScheduleMeetingDialog({
   }, [open]);
 
   useEffect(() => {
-    if (!open) {
-      reset();
-      setSelectedEmployees([]);
-      setParticipantSearch("");
-      setDropdownOpen(false);
-    }
-  }, [open, reset]);
-
-  useEffect(() => {
     setValue(
       "participantUserIds",
       selectedEmployees.map((e) => e.user.id),
     );
   }, [selectedEmployees, setValue]);
+
+  function handleOpenChange(next: boolean) {
+    if (!next) {
+      reset();
+      setSelectedEmployees([]);
+      setParticipantSearch("");
+      setDropdownOpen(false);
+    }
+    onOpenChange(next);
+  }
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -282,7 +283,7 @@ export function ScheduleMeetingDialog({
       }
 
       toast.success("Meeting scheduled");
-      onOpenChange(false);
+      handleOpenChange(false);
       onSuccess?.();
     } catch (error: unknown) {
       const message =
@@ -294,7 +295,7 @@ export function ScheduleMeetingDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         className={cn(
           "max-h-[90vh] overflow-y-auto",
@@ -494,7 +495,7 @@ export function ScheduleMeetingDialog({
         <DialogFooter className="flex-col gap-2 sm:flex-row sm:gap-3">
           <Btn
             variant="secondary"
-            onClick={() => onOpenChange(false)}
+            onClick={() => handleOpenChange(false)}
             className="w-full sm:w-auto"
           >
             Cancel

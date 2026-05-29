@@ -61,21 +61,21 @@ type AuthFixtures = {
 };
 
 export const test = base.extend<AuthFixtures>({
-  adminPage: async ({ browser }, use) => {
+  adminPage: async ({ browser }, provide) => {
     const context = await browser.newContext({
       storageState: ADMIN_STORAGE,
     });
     const page = await context.newPage();
-    await use(page);
+    await provide(page);
     await context.close();
   },
 
-  employeePage: async ({ browser }, use) => {
+  employeePage: async ({ browser }, provide) => {
     const context = await browser.newContext({
       storageState: EMPLOYEE_STORAGE,
     });
     const page = await context.newPage();
-    await use(page);
+    await provide(page);
     await context.close();
   },
 });

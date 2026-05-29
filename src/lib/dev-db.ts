@@ -44,7 +44,7 @@ async function main() {
     const migrationsDir = resolve(process.cwd(), "prisma/migrations");
     if (existsSync(migrationsDir)) {
       console.log("Running migrations...");
-      execSync("npx prisma migrate dev --skip-generate", {
+      execSync("npx prisma migrate deploy", {
         stdio: "inherit",
         env: { ...process.env, DATABASE_URL: databaseUrl },
       });

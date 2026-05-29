@@ -7,8 +7,8 @@ test.describe("Mobile navigation", () => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto("/");
 
-    // Sidebar should be hidden on mobile
-    const sidebar = page.locator("aside");
+    // Desktop sidebar should be hidden on mobile
+    const sidebar = page.locator('[data-sidebar="desktop"]');
     await expect(sidebar).not.toBeVisible();
 
     // Click hamburger menu

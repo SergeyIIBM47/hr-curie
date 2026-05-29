@@ -70,7 +70,7 @@ export function LoginForm() {
       });
 
       if (res.status === 0 || res.type === "opaqueredirect") {
-        window.location.href = "/";
+        window.location.assign("/");
         return;
       }
 
@@ -80,7 +80,7 @@ export function LoginForm() {
           setError("Invalid email or password");
           return;
         }
-        window.location.href = "/";
+        window.location.assign("/");
         return;
       }
 
