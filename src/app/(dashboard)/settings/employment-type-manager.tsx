@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, X, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { Btn, IconBtn, IPlus, type IconProps } from "@/components/curie";
+import { cn } from "@/lib/utils";
 
 interface EmploymentType {
   id: string;
@@ -12,6 +14,26 @@ interface EmploymentType {
 
 interface EmploymentTypeManagerProps {
   initialTypes: EmploymentType[];
+}
+
+function TrashIcon(props: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={16}
+      height={16}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+      <path d="M10 11v6M14 11v6" />
+    </svg>
+  );
 }
 
 export function EmploymentTypeManager({
@@ -78,38 +100,53 @@ export function EmploymentTypeManager({
   }
 
   return (
-    <div className="rounded-[12px] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
-      <h2 className="mb-4 text-[20px] font-semibold text-[#1D1D1F]">
+    <section className="flex flex-col gap-4">
+      <h2
+        className={cn(
+          "font-[family-name:var(--font-curie-display)]",
+          "text-[20px] font-medium tracking-[-0.01em]",
+          "text-[var(--color-curie-fg)]",
+        )}
+      >
         Employment Types
       </h2>
 
-      {/* Chips */}
-      <div className="mb-5 flex flex-wrap gap-2">
+      <ul className="flex flex-col gap-2">
         {types.length === 0 && (
-          <p className="text-[15px] text-[#8E8E93]">
+          <li className="text-[15px] text-[var(--color-curie-fg-muted)]">
             No employment types yet.
-          </p>
+          </li>
         )}
         {types.map((type) => {
           const hasEmployees = type.employeeCount > 0;
           const isDeleting = deletingId === type.id;
 
           return (
-            <span
+            <li
               key={type.id}
-              className="inline-flex items-center gap-1.5 rounded-[6px] bg-[#E5E5EA] py-1.5 pl-3 pr-2 text-[16px] text-[#1D1D1F]"
-            >
-              {type.name}
-              {hasEmployees && (
-                <span className="text-[12px] text-[#8E8E93]">
-                  ({type.employeeCount})
-                </span>
+              className={cn(
+                "flex items-center gap-3 p-4",
+                "rounded-[var(--radius-curie-lg)]",
+                "border border-[var(--color-curie-border)]",
+                "bg-[var(--color-curie-surface)]",
+                "shadow-[var(--shadow-curie-soft)]",
               )}
-              <button
-                type="button"
-                onClick={() => handleDelete(type)}
-                disabled={hasEmployees || isDeleting}
-                aria-label={
+            >
+              <span className="flex-1 truncate text-[14px] font-medium text-[var(--color-curie-fg)]">
+                {type.name}
+              </span>
+              <span
+                className={cn(
+                  "font-[family-name:var(--font-curie-mono)]",
+                  "text-[12px] text-[var(--color-curie-fg-muted)]",
+                )}
+              >
+                {type.employeeCount}{" "}
+                {type.employeeCount === 1 ? "employee" : "employees"}
+              </span>
+              <IconBtn
+                icon={TrashIcon}
+                label={
                   hasEmployees
                     ? `Cannot delete ${type.name} — ${type.employeeCount} employee${type.employeeCount > 1 ? "s" : ""} assigned`
                     : `Delete ${type.name}`
@@ -119,20 +156,18 @@ export function EmploymentTypeManager({
                     ? `Cannot delete — ${type.employeeCount} employee${type.employeeCount > 1 ? "s" : ""} assigned`
                     : `Delete "${type.name}"`
                 }
-                className="ml-0.5 flex size-5 items-center justify-center rounded-full transition-colors duration-150 enabled:hover:bg-[#D1D1D6] disabled:cursor-not-allowed disabled:opacity-30"
-              >
-                {isDeleting ? (
-                  <Loader2 className="size-3 animate-spin" />
-                ) : (
-                  <X className="size-3.5" />
+                disabled={hasEmployees || isDeleting}
+                onClick={() => handleDelete(type)}
+                className={cn(
+                  "text-[var(--color-curie-fg-muted)]",
+                  "enabled:hover:text-[var(--color-curie-danger)]",
                 )}
-              </button>
-            </span>
+              />
+            </li>
           );
         })}
-      </div>
+      </ul>
 
-      {/* Add Type */}
       <div className="flex flex-col gap-2 sm:flex-row">
         <input
           type="text"
@@ -143,24 +178,33 @@ export function EmploymentTypeManager({
           }}
           placeholder="New employment type..."
           aria-label="New employment type name"
-          className="h-[44px] w-full rounded-[8px] bg-[rgba(120,120,128,0.12)] px-3 text-[17px] text-[#1D1D1F] outline-none placeholder:text-[rgba(60,60,67,0.3)] focus:ring-2 focus:ring-[#007AFF]/40 sm:flex-1"
+          className={cn(
+            "h-10 w-full px-3",
+            "rounded-[var(--radius-curie-sm)]",
+            "border border-[var(--color-curie-border)]",
+            "bg-[var(--color-curie-surface)]",
+            "text-[14px] text-[var(--color-curie-fg)]",
+            "outline-none",
+            "placeholder:text-[var(--color-curie-fg-muted)]",
+            "focus:border-[var(--color-curie-brand)]",
+            "focus:ring-2 focus:ring-[var(--color-curie-brand-soft)]",
+            "sm:flex-1",
+          )}
         />
-        <button
-          type="button"
+        <Btn
+          variant="primary"
+          icon={IPlus}
           onClick={handleAdd}
           disabled={adding || !newName.trim()}
-          className="inline-flex h-[44px] w-full items-center justify-center gap-1.5 rounded-[8px] bg-[#007AFF] px-4 text-[15px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98] disabled:opacity-60 sm:w-auto"
+          className="w-full sm:w-auto"
         >
           {adding ? (
-            <Loader2 className="size-4 animate-spin" />
+            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
           ) : (
-            <>
-              <Plus className="size-4" />
-              Add Type
-            </>
+            "Add type"
           )}
-        </button>
+        </Btn>
       </div>
-    </div>
+    </section>
   );
 }

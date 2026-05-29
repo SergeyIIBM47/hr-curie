@@ -3,7 +3,7 @@
 import { useId, useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, X, Check } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -12,6 +12,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Avatar, Btn, IconBtn } from "@/components/curie";
+import { cn } from "@/lib/utils";
 import {
   scheduleMeetingSchema,
   type ScheduleMeetingInput,
@@ -30,8 +32,17 @@ const durations = [
   { value: 90, label: "90 min" },
 ] as const;
 
-const inputClass =
-  "h-[44px] w-full rounded-[8px] bg-[rgba(120,120,128,0.12)] px-3 text-[17px] text-[#1D1D1F] outline-none placeholder:text-[rgba(60,60,67,0.3)] focus:ring-2 focus:ring-[#007AFF]/40";
+const inputClass = cn(
+  "h-10 w-full px-3",
+  "rounded-[var(--radius-curie-sm)]",
+  "border border-[var(--color-curie-border)]",
+  "bg-[var(--color-curie-surface)]",
+  "text-[14px] text-[var(--color-curie-fg)]",
+  "outline-none",
+  "placeholder:text-[var(--color-curie-fg-muted)]",
+  "focus:border-[var(--color-curie-brand)]",
+  "focus:ring-2 focus:ring-[var(--color-curie-brand-soft)]",
+);
 
 interface Employee {
   id: string;
@@ -62,13 +73,59 @@ function FormField({
     <div>
       <label
         htmlFor={htmlFor}
-        className="mb-1.5 block text-[15px] font-medium text-[#3C3C43]"
+        className={cn(
+          "mb-1.5 block",
+          "text-[12px] font-medium",
+          "text-[var(--color-curie-fg-secondary)]",
+        )}
       >
         {label}
       </label>
       {children}
-      {error && <p className="mt-1 text-[13px] text-[#FF3B30]">{error}</p>}
+      {error && (
+        <p className="mt-1 text-[12px] text-[var(--color-curie-danger)]">
+          {error}
+        </p>
+      )}
     </div>
+  );
+}
+
+function CloseIcon(props: React.SVGAttributes<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={14}
+      height={14}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M18 6 6 18M6 6l12 12" />
+    </svg>
+  );
+}
+
+function CheckIcon(props: React.SVGAttributes<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={16}
+      height={16}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="m5 12 5 5L20 7" />
+    </svg>
   );
 }
 
@@ -79,32 +136,35 @@ function ParticipantChip({
   employee: Employee;
   onRemove: () => void;
 }) {
-  const initials = `${employee.firstName[0]}${employee.lastName[0]}`;
+  const name = `${employee.firstName} ${employee.lastName}`;
 
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#007AFF]/10 py-1 pl-1 pr-2 text-[13px] text-[#007AFF]">
-      {employee.avatarUrl ? (
-        <img
-          src={employee.avatarUrl}
-          alt=""
-          className="size-5 rounded-full object-cover"
-        />
-      ) : (
-        <span className="flex size-5 items-center justify-center rounded-full bg-[#007AFF]/20 text-[10px] font-medium">
-          {initials}
-        </span>
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5",
+        "h-7 pl-1 pr-2",
+        "rounded-[var(--radius-curie-pill)]",
+        "bg-[var(--color-curie-brand-wash)]",
+        "text-[12px] font-medium",
+        "text-[var(--color-curie-brand-ink)]",
       )}
-      <span className="font-medium">
-        {employee.firstName} {employee.lastName}
-      </span>
-      <button
-        type="button"
+    >
+      <Avatar
+        name={name}
+        size="xs"
+        imageSrc={employee.avatarUrl ?? undefined}
+      />
+      <span>{name}</span>
+      <IconBtn
+        icon={CloseIcon}
+        label={`Remove ${name}`}
         onClick={onRemove}
-        aria-label={`Remove ${employee.firstName} ${employee.lastName}`}
-        className="ml-0.5 flex size-4 items-center justify-center rounded-full transition-colors duration-150 hover:bg-[#007AFF]/20"
-      >
-        <X className="size-3" aria-hidden="true" />
-      </button>
+        className={cn(
+          "h-5 w-5",
+          "text-[var(--color-curie-brand-ink)]",
+          "hover:bg-[var(--color-curie-brand-soft)]",
+        )}
+      />
     </span>
   );
 }
@@ -236,11 +296,24 @@ export function ScheduleMeetingDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-h-[90vh] overflow-y-auto rounded-t-[14px] shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.08)] sm:rounded-[14px] sm:max-w-[480px]"
+        className={cn(
+          "max-h-[90vh] overflow-y-auto",
+          "rounded-t-[var(--radius-curie-lg)] sm:rounded-[var(--radius-curie-lg)]",
+          "bg-[var(--color-curie-surface)]",
+          "shadow-[var(--shadow-curie-lifted)]",
+          "sm:max-w-[480px]",
+        )}
         showCloseButton
       >
         <DialogHeader>
-          <DialogTitle className="text-center text-[20px] font-semibold text-[#1D1D1F]">
+          <DialogTitle
+            className={cn(
+              "text-center",
+              "font-[family-name:var(--font-curie-display)]",
+              "text-[20px] font-medium tracking-[-0.01em]",
+              "text-[var(--color-curie-fg)]",
+            )}
+          >
             Schedule Meeting
           </DialogTitle>
         </DialogHeader>
@@ -351,34 +424,43 @@ export function ScheduleMeetingDialog({
               />
 
               {dropdownOpen && filteredEmployees.length > 0 && (
-                <div className="absolute top-full left-0 z-50 mt-1 max-h-[200px] w-full overflow-y-auto rounded-[10px] bg-white shadow-[0_4px_16px_rgba(0,0,0,0.12)] ring-1 ring-black/5">
-                  {filteredEmployees.map((emp) => (
-                    <button
-                      key={emp.id}
-                      type="button"
-                      onClick={() => toggleEmployee(emp)}
-                      className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-[#F2F2F7]"
-                    >
-                      {emp.avatarUrl ? (
-                        <img
-                          src={emp.avatarUrl}
-                          alt=""
-                          className="size-7 rounded-full object-cover"
+                <div
+                  className={cn(
+                    "absolute top-full left-0 z-50 mt-1 w-full",
+                    "max-h-[200px] overflow-y-auto",
+                    "rounded-[var(--radius-curie-md)]",
+                    "bg-[var(--color-curie-surface)]",
+                    "shadow-[var(--shadow-curie-lifted)]",
+                    "ring-1 ring-[var(--color-curie-border)]",
+                  )}
+                >
+                  {filteredEmployees.map((emp) => {
+                    const name = `${emp.firstName} ${emp.lastName}`;
+                    return (
+                      <button
+                        key={emp.id}
+                        type="button"
+                        onClick={() => toggleEmployee(emp)}
+                        className={cn(
+                          "flex w-full items-center gap-3 px-3 py-2.5 text-left",
+                          "transition-colors",
+                          "hover:bg-[var(--color-curie-surface-sunken)]",
+                        )}
+                      >
+                        <Avatar
+                          name={name}
+                          size="sm"
+                          imageSrc={emp.avatarUrl ?? undefined}
                         />
-                      ) : (
-                        <span className="flex size-7 items-center justify-center rounded-full bg-[#E5E5EA] text-[12px] font-medium text-[#3C3C43]">
-                          {emp.firstName[0]}
-                          {emp.lastName[0]}
+                        <span className="text-[14px] text-[var(--color-curie-fg)]">
+                          {name}
                         </span>
-                      )}
-                      <span className="text-[15px] text-[#1D1D1F]">
-                        {emp.firstName} {emp.lastName}
-                      </span>
-                      {selectedIds.has(emp.id) && (
-                        <Check className="ml-auto size-4 text-[#007AFF]" />
-                      )}
-                    </button>
-                  ))}
+                        {selectedIds.has(emp.id) && (
+                          <CheckIcon className="ml-auto text-[var(--color-curie-brand)]" />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -394,31 +476,42 @@ export function ScheduleMeetingDialog({
               id={fieldId("notes")}
               rows={3}
               placeholder="Add meeting notes..."
-              className="w-full rounded-[8px] bg-[rgba(120,120,128,0.12)] px-3 py-2.5 text-[17px] text-[#1D1D1F] outline-none placeholder:text-[rgba(60,60,67,0.3)] focus:ring-2 focus:ring-[#007AFF]/40"
+              className={cn(
+                "w-full px-3 py-2.5",
+                "rounded-[var(--radius-curie-sm)]",
+                "border border-[var(--color-curie-border)]",
+                "bg-[var(--color-curie-surface)]",
+                "text-[14px] text-[var(--color-curie-fg)]",
+                "outline-none",
+                "placeholder:text-[var(--color-curie-fg-muted)]",
+                "focus:border-[var(--color-curie-brand)]",
+                "focus:ring-2 focus:ring-[var(--color-curie-brand-soft)]",
+              )}
             />
           </FormField>
         </form>
 
         <DialogFooter className="flex-col gap-2 sm:flex-row sm:gap-3">
-          <button
-            type="button"
+          <Btn
+            variant="secondary"
             onClick={() => onOpenChange(false)}
-            className="h-[44px] w-full rounded-[8px] px-4 text-[15px] font-semibold text-[#007AFF] transition-colors duration-150 hover:bg-[#E5E5EA] sm:h-[38px] sm:w-auto"
+            className="w-full sm:w-auto"
           >
             Cancel
-          </button>
-          <button
+          </Btn>
+          <Btn
+            variant="primary"
             type="submit"
             form={`${formId}-form`}
             disabled={submitting}
-            className="inline-flex h-[44px] w-full items-center justify-center rounded-[8px] bg-[#007AFF] px-5 text-[15px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98] disabled:opacity-60 sm:h-[38px] sm:w-auto"
+            className="w-full sm:w-auto"
           >
             {submitting ? (
-              <Loader2 className="size-4 animate-spin" />
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
             ) : (
               "Schedule"
             )}
-          </button>
+          </Btn>
         </DialogFooter>
       </DialogContent>
     </Dialog>

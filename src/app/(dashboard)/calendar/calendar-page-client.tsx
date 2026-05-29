@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Plus } from "lucide-react";
 import { CalendarMonthView } from "@/components/calendar/calendar-month-view";
 import { ScheduleMeetingDialog } from "@/components/calendar/schedule-meeting-dialog";
+import { Btn, IPlus } from "@/components/curie";
+import { cn } from "@/lib/utils";
 import type { Meeting } from "@/components/calendar/meeting-card";
 
 interface CalendarPageClientProps {
@@ -23,18 +24,26 @@ export function CalendarPageClient({
   }, []);
 
   return (
-    <div>
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-[28px] font-bold text-[#1D1D1F]">Calendar</h1>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1
+          className={cn(
+            "font-[family-name:var(--font-curie-display)]",
+            "text-[28px] font-medium leading-tight tracking-[-0.015em]",
+            "text-[var(--color-curie-fg)]",
+          )}
+        >
+          Calendar
+        </h1>
         {isAdmin && (
-          <button
-            type="button"
+          <Btn
+            variant="primary"
+            icon={IPlus}
             onClick={() => setDialogOpen(true)}
-            className="inline-flex h-[44px] w-full items-center justify-center gap-2 rounded-[8px] bg-[#007AFF] px-5 text-[17px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98] sm:w-auto"
+            className="w-full sm:w-auto"
           >
-            <Plus className="size-5" aria-hidden="true" />
-            Schedule Meeting
-          </button>
+            Schedule meeting
+          </Btn>
         )}
       </div>
 

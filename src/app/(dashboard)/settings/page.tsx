@@ -1,5 +1,6 @@
 import { requireAuth } from "@/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
+import { cn } from "@/lib/utils";
 import { EmploymentTypeManager } from "./employment-type-manager";
 
 export default async function SettingsPage() {
@@ -17,10 +18,18 @@ export default async function SettingsPage() {
   }));
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-[28px] font-bold text-[#1D1D1F]">Settings</h1>
-        <p className="text-[15px] text-[#8E8E93]">
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1
+          className={cn(
+            "font-[family-name:var(--font-curie-display)]",
+            "text-[28px] font-medium leading-tight tracking-[-0.015em]",
+            "text-[var(--color-curie-fg)]",
+          )}
+        >
+          Settings
+        </h1>
+        <p className="text-[15px] text-[var(--color-curie-fg-secondary)]">
           Manage system configuration
         </p>
       </div>

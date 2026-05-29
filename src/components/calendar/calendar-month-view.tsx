@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
+import { IconBtn, IChevronLeft, IChevronRight } from "@/components/curie";
+import { cn } from "@/lib/utils";
 import { MeetingCard, type Meeting } from "./meeting-card";
 
 interface CalendarMonthViewProps {
@@ -9,12 +10,7 @@ interface CalendarMonthViewProps {
   isAdmin: boolean;
 }
 
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
-
-const DOT_COLORS: Record<string, string> = {
-  ONE_ON_ONE: "#007AFF",
-  PERFORMANCE_REVIEW: "#5856D6",
-};
+const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
 function isSameDay(a: Date, b: Date): boolean {
   return (
@@ -27,7 +23,8 @@ function isSameDay(a: Date, b: Date): boolean {
 function getMonthGrid(year: number, month: number): (Date | null)[][] {
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
-  const startOffset = firstDay.getDay();
+  // Monday-first offset
+  const startOffset = (firstDay.getDay() + 6) % 7;
   const totalDays = lastDay.getDate();
 
   const cells: (Date | null)[] = [];
@@ -51,8 +48,9 @@ function getMonthGrid(year: number, month: number): (Date | null)[][] {
 
 export function CalendarMonthView({
   initialMeetings,
-  isAdmin,
+  isAdmin: _isAdmin,
 }: CalendarMonthViewProps) {
+  void _isAdmin;
   const today = new Date();
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
@@ -84,12 +82,8 @@ export function CalendarMonthView({
     [meetingsByDate],
   );
 
-  const getDotTypes = useCallback(
-    (date: Date): string[] => {
-      const dayMeetings = getMeetingsForDate(date);
-      const types = new Set(dayMeetings.map((m) => m.type));
-      return Array.from(types);
-    },
+  const hasEvent = useCallback(
+    (date: Date): boolean => getMeetingsForDate(date).length > 0,
     [getMeetingsForDate],
   );
 
@@ -141,50 +135,73 @@ export function CalendarMonthView({
     { month: "long", year: "numeric" },
   );
 
+  const selectedTitle = selectedDate.toLocaleDateString("default", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+
   return (
     <div className="flex flex-col gap-6 lg:flex-row">
       {/* Month Grid */}
-      <div className="min-w-0 flex-1">
+      <div
+        className={cn(
+          "min-w-0 flex-1",
+          "bg-[var(--color-curie-surface)]",
+          "rounded-[var(--radius-curie-lg)]",
+          "p-4 sm:p-6",
+        )}
+      >
         {/* Navigation */}
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h2 className="text-[20px] font-semibold text-[#1D1D1F]">
+            <h2
+              className={cn(
+                "font-[family-name:var(--font-curie-display)]",
+                "text-[20px] font-medium tracking-[-0.01em]",
+                "text-[var(--color-curie-fg)]",
+              )}
+            >
               {monthLabel}
             </h2>
             <button
               type="button"
               onClick={goToToday}
-              className="rounded-[6px] px-2 py-1 text-[13px] font-medium text-[#007AFF] transition-colors duration-150 hover:bg-[#007AFF]/10"
+              className={cn(
+                "rounded-[var(--radius-curie-pill)] px-2.5 py-1",
+                "text-[12px] font-medium",
+                "text-[var(--color-curie-brand)]",
+                "transition-colors duration-150",
+                "hover:bg-[var(--color-curie-brand-wash)]",
+              )}
             >
               Today
             </button>
           </div>
           <div className="flex items-center gap-1">
-            <button
-              type="button"
+            <IconBtn
+              icon={IChevronLeft}
+              label="Previous month"
               onClick={prevMonth}
-              className="flex size-[44px] items-center justify-center rounded-[8px] text-[#3C3C43] transition-colors duration-150 hover:bg-[#F2F2F7] sm:size-9"
-              aria-label="Previous month"
-            >
-              <ChevronLeft className="size-5" />
-            </button>
-            <button
-              type="button"
+            />
+            <IconBtn
+              icon={IChevronRight}
+              label="Next month"
               onClick={nextMonth}
-              className="flex size-[44px] items-center justify-center rounded-[8px] text-[#3C3C43] transition-colors duration-150 hover:bg-[#F2F2F7] sm:size-9"
-              aria-label="Next month"
-            >
-              <ChevronRight className="size-5" />
-            </button>
+            />
           </div>
         </div>
 
         {/* Weekday headers */}
-        <div className="grid grid-cols-7 border-b border-[#E5E5EA]">
+        <div className="grid grid-cols-7 gap-0.5">
           {WEEKDAYS.map((day) => (
             <div
               key={day}
-              className="pb-2 text-center text-[12px] font-semibold uppercase tracking-wider text-[#8E8E93]"
+              className={cn(
+                "px-0 py-2 text-center",
+                "text-[10px] font-medium uppercase tracking-[0.08em]",
+                "text-[var(--color-curie-fg-muted)]",
+              )}
             >
               {day}
             </div>
@@ -192,21 +209,22 @@ export function CalendarMonthView({
         </div>
 
         {/* Day cells */}
-        <div className="grid grid-cols-7">
+        <div className="grid grid-cols-7 gap-0.5">
           {weeks.map((week, wi) =>
             week.map((date, di) => {
               if (!date) {
                 return (
                   <div
                     key={`empty-${wi}-${di}`}
-                    className="min-h-[72px] border-b border-r border-[#F2F2F7] last:border-r-0 sm:min-h-[84px]"
+                    aria-hidden="true"
+                    className="min-h-[64px] sm:min-h-[88px]"
                   />
                 );
               }
 
               const isToday = isSameDay(date, today);
               const isSelected = isSameDay(date, selectedDate);
-              const dotTypes = getDotTypes(date);
+              const dayHasEvent = hasEvent(date);
               const dayNum = date.getDate();
 
               return (
@@ -214,40 +232,57 @@ export function CalendarMonthView({
                   key={date.toISOString()}
                   type="button"
                   onClick={() => setSelectedDate(date)}
-                  aria-label={date.toLocaleDateString("default", { month: "long", day: "numeric" })}
-                  aria-pressed={isSelected}
-                  className={`relative flex min-h-[72px] flex-col items-center border-b border-r border-[#F2F2F7] pt-2 transition-colors duration-150 last:border-r-0 sm:min-h-[84px] ${
+                  aria-label={date.toLocaleDateString("default", {
+                    month: "long",
+                    day: "numeric",
+                  })}
+                  aria-pressed={isSelected || undefined}
+                  data-curie-today={isToday || undefined}
+                  data-curie-selected={isSelected || undefined}
+                  data-curie-has-event={dayHasEvent || undefined}
+                  className={cn(
+                    "relative min-h-[64px] sm:min-h-[88px]",
+                    "flex flex-col items-center pt-2",
+                    "rounded-[var(--radius-curie-sm)]",
+                    "font-[family-name:var(--font-curie-mono)]",
+                    "transition-colors duration-150",
+                    "cursor-pointer",
                     isSelected
-                      ? "bg-[#007AFF]/5"
-                      : "hover:bg-[#F2F2F7]"
-                  }`}
-                >
-                  <span
-                    className={`flex size-8 items-center justify-center rounded-full text-[15px] ${
-                      isToday
-                        ? "bg-[#007AFF] font-semibold text-white"
-                        : isSelected
-                          ? "font-semibold text-[#007AFF]"
-                          : "text-[#1D1D1F]"
-                    }`}
-                  >
-                    {dayNum}
-                  </span>
-
-                  {dotTypes.length > 0 && (
-                    <div className="mt-1 flex gap-1">
-                      {dotTypes.map((type) => (
-                        <span
-                          key={type}
-                          className="size-[6px] rounded-full"
-                          style={{
-                            backgroundColor:
-                              DOT_COLORS[type] ?? "#8E8E93",
-                          }}
-                        />
-                      ))}
-                    </div>
+                      ? "bg-[var(--color-curie-fg)] text-[var(--color-curie-fg-on-ink)]"
+                      : cn(
+                          "text-[var(--color-curie-fg-secondary)]",
+                          "hover:bg-[var(--color-curie-surface-sunken)]",
+                        ),
+                    isToday &&
+                      !isSelected &&
+                      "font-bold text-[var(--color-curie-fg)]",
                   )}
+                >
+                  <span className="text-[14px] leading-none">{dayNum}</span>
+
+                  {isToday && !isSelected ? (
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "absolute left-1/2 top-[26px] -translate-x-1/2",
+                        "h-0.5 w-4 rounded-sm",
+                        "bg-[var(--color-curie-brand)]",
+                      )}
+                    />
+                  ) : null}
+
+                  {dayHasEvent ? (
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "absolute bottom-2 left-1/2 -translate-x-1/2",
+                        "h-1 w-1 rounded-full",
+                        isSelected
+                          ? "bg-[var(--color-curie-fg-on-ink)]"
+                          : "bg-[var(--color-curie-fg)]",
+                      )}
+                    />
+                  ) : null}
                 </button>
               );
             }),
@@ -256,28 +291,37 @@ export function CalendarMonthView({
       </div>
 
       {/* Day Detail Panel */}
-      <div className="w-full rounded-[12px] bg-[#F9F9FB] p-4 lg:w-[340px]">
-        <h3 className="mb-3 text-[17px] font-semibold text-[#1D1D1F]">
-          {selectedDate.toLocaleDateString("default", {
-            weekday: "long",
-            month: "long",
-            day: "numeric",
-          })}
+      <aside
+        className={cn(
+          "w-full lg:w-[340px]",
+          "bg-[var(--color-curie-surface)]",
+          "rounded-[var(--radius-curie-lg)]",
+          "p-4 sm:p-6",
+        )}
+      >
+        <h3
+          className={cn(
+            "mb-4",
+            "font-[family-name:var(--font-curie-display)]",
+            "text-[22px] font-medium leading-tight tracking-[-0.01em]",
+            "text-[var(--color-curie-fg)]",
+          )}
+        >
+          {selectedTitle}
         </h3>
 
         {selectedMeetings.length === 0 ? (
-          <div className="flex flex-col items-center py-8 text-center">
-            <CalendarDays className="mb-2 size-12 text-[#D1D1D6]" strokeWidth={1.5} />
-            <p className="text-[15px] text-[#8E8E93]">No meetings</p>
-          </div>
+          <p className="text-[13px] text-[var(--color-curie-fg-muted)]">
+            Nothing scheduled.
+          </p>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2.5">
             {selectedMeetings.map((m) => (
               <MeetingCard key={m.id} meeting={m} />
             ))}
           </div>
         )}
-      </div>
+      </aside>
     </div>
   );
 }
