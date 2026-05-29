@@ -9,37 +9,41 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getInitials } from "@/lib/utils";
+import { Avatar, Pill } from "@/components/curie";
+import { cn } from "@/lib/utils";
 import type { EmployeeListItem } from "@/types/employee";
 
 interface EmployeeTableProps {
   employees: EmployeeListItem[];
 }
 
+const HEADER_CLASS = cn(
+  "h-10 px-4",
+  "text-[11px] font-medium uppercase tracking-[0.06em]",
+  "font-[family-name:var(--font-curie-mono)]",
+  "text-[var(--color-curie-fg-muted)]",
+);
+
 export function EmployeeTable({ employees }: EmployeeTableProps) {
   const router = useRouter();
 
   return (
-    <div className="hidden rounded-[10px] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)] md:block">
+    <div
+      className={cn(
+        "hidden overflow-hidden md:block",
+        "rounded-[var(--radius-curie-lg)]",
+        "border border-[var(--color-curie-border)]",
+        "bg-[var(--color-curie-surface)]",
+        "shadow-[var(--shadow-curie-soft)]",
+      )}
+    >
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
-            <TableHead className="h-10 px-4 text-[13px] font-semibold uppercase tracking-wider text-[#8E8E93]">
-              Name
-            </TableHead>
-            <TableHead className="h-10 px-4 text-[13px] font-semibold uppercase tracking-wider text-[#8E8E93]">
-              Email
-            </TableHead>
-            <TableHead className="h-10 px-4 text-[13px] font-semibold uppercase tracking-wider text-[#8E8E93]">
-              Role
-            </TableHead>
-            <TableHead className="h-10 px-4 text-[13px] font-semibold uppercase tracking-wider text-[#8E8E93]">
-              Department
-            </TableHead>
-            <TableHead className="h-10 px-4 text-[13px] font-semibold uppercase tracking-wider text-[#8E8E93]">
-              Employment Type
-            </TableHead>
+            <TableHead className={HEADER_CLASS}>Name</TableHead>
+            <TableHead className={HEADER_CLASS}>Department</TableHead>
+            <TableHead className={HEADER_CLASS}>Employment Type</TableHead>
+            <TableHead className={HEADER_CLASS}>Role</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -49,7 +53,11 @@ export function EmployeeTable({ employees }: EmployeeTableProps) {
               <TableRow
                 key={emp.id}
                 tabIndex={0}
-                className="h-[52px] cursor-pointer transition-colors duration-150 hover:bg-[#F2F2F7]"
+                className={cn(
+                  "h-[56px] cursor-pointer transition-colors duration-150",
+                  "hover:bg-[var(--color-curie-surface-sunken)]",
+                  "focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--color-curie-brand)]",
+                )}
                 onClick={() => router.push(`/employees/${emp.id}`)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
@@ -60,38 +68,33 @@ export function EmployeeTable({ employees }: EmployeeTableProps) {
               >
                 <TableCell className="px-4">
                   <div className="flex items-center gap-3">
-                    <Avatar className="size-8">
-                      {emp.avatarUrl && (
-                        <AvatarImage src={emp.avatarUrl} alt={fullName} />
-                      )}
-                      <AvatarFallback className="bg-[#007AFF]/10 text-[11px] font-semibold text-[#007AFF]">
-                        {getInitials(fullName)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-[15px] font-medium text-[#1D1D1F]">
-                      {fullName}
-                    </span>
+                    <Avatar
+                      name={fullName}
+                      size="sm"
+                      imageSrc={emp.avatarUrl ?? undefined}
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-[14px] font-medium text-[var(--color-curie-fg)]">
+                        {fullName}
+                      </span>
+                      {emp.position ? (
+                        <span className="text-[12px] text-[var(--color-curie-fg-secondary)]">
+                          {emp.position}
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
                 </TableCell>
-                <TableCell className="px-4 text-[15px] text-[#1D1D1F]">
-                  {emp.workEmail}
-                </TableCell>
-                <TableCell className="px-4">
-                  <span
-                    className={`rounded-[6px] px-1.5 py-0.5 text-[11px] font-semibold uppercase ${
-                      emp.user.role === "ADMIN"
-                        ? "bg-[#5856D6]/15 text-[#5856D6]"
-                        : "bg-[#007AFF]/10 text-[#007AFF]"
-                    }`}
-                  >
-                    {emp.user.role === "ADMIN" ? "Admin" : "Employee"}
-                  </span>
-                </TableCell>
-                <TableCell className="px-4 text-[15px] text-[#8E8E93]">
+                <TableCell className="px-4 text-[14px] text-[var(--color-curie-fg-secondary)]">
                   {emp.department ?? "—"}
                 </TableCell>
-                <TableCell className="px-4 text-[15px] text-[#8E8E93]">
+                <TableCell className="px-4 text-[14px] text-[var(--color-curie-fg-secondary)]">
                   {emp.employmentType.name}
+                </TableCell>
+                <TableCell className="px-4">
+                  <Pill variant="role" className="uppercase">
+                    {emp.user.role === "ADMIN" ? "Admin" : "Employee"}
+                  </Pill>
                 </TableCell>
               </TableRow>
             );

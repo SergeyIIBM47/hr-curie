@@ -1,542 +1,491 @@
-import type { ReactNode } from "react";
 import Link from "next/link";
-import type { LeaveType, LeaveStatus } from "@prisma/client";
 import { requireAuth } from "@/lib/auth-guard";
-import { prisma } from "@/lib/prisma";
 import {
-  Users,
-  CalendarOff,
-  Calendar,
-  UserPlus,
-  CalendarDays,
-  ClipboardList,
-  User,
-} from "lucide-react";
+  fetchAdminOverview,
+  fetchEmployeeOverview,
+  type AdminOverview,
+  type EmployeeOverview,
+  type OnboardingPlanRow,
+  type TimeOffRow,
+  type NoticeRow,
+} from "./page.queries";
+import {
+  PageGreeting,
+  KpiCard,
+  WorkforceCompositionDonut,
+  Btn,
+  Pill,
+  IDoc,
+  IPlus,
+  ILeave,
+  ICal,
+  IUser,
+  IArrowRight,
+  type NoticeView,
+  type OnboardingTrackerData,
+} from "@/components/curie";
+import { TimeOffThisWeekCard } from "@/components/curie/time-off-this-week-card";
+import { OnboardingTrackerCard } from "@/components/curie/onboarding-tracker-card";
+import { NoticeBoardCard } from "@/components/curie/notice-board-card";
+import { cn } from "@/lib/utils";
 
-/* ── Stat card (shared) ──────────────────────────────────────── */
-
-interface StatCardProps {
-  label: string;
-  value: number;
-  icon: ReactNode;
-  href?: string;
-}
-
-function StatCard({ label, value, icon, href }: StatCardProps) {
-  const inner = (
-    <div className="relative rounded-[10px] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]">
-      <div className="absolute right-5 top-5">{icon}</div>
-      <p className="text-[34px] font-bold leading-tight text-[#1D1D1F]">
-        {value}
-      </p>
-      <p className="mt-1 text-[16px] text-gray-1">{label}</p>
-    </div>
-  );
-
-  if (href) {
-    return (
-      <Link href={href} className="transition-all duration-150 hover:opacity-90 active:scale-[0.98]">
-        {inner}
-      </Link>
-    );
+function getOverviewToday(): Date {
+  const override = process.env.OVERVIEW_FREEZE_DATE;
+  if (override) {
+    const parsed = new Date(override);
+    if (!Number.isNaN(parsed.getTime())) return parsed;
   }
-  return inner;
+  return new Date();
 }
 
-/* ── Admin view ──────────────────────────────────────────────── */
+export default async function DashboardPage() {
+  const session = await requireAuth();
+  const today = getOverviewToday();
+  const isAdmin = session.user.role === "ADMIN";
 
-interface AdminDashboardProps {
-  totalEmployees: number;
-  pendingRequests: number;
-  meetingsThisWeek: number;
-  newThisMonth: number;
-  recentLeave: RecentLeaveItem[];
-  upcomingMeetings: UpcomingMeetingItem[];
+  if (isAdmin) {
+    const data = await fetchAdminOverview(session, today);
+    return <AdminOverviewView data={data} />;
+  }
+
+  const data = await fetchEmployeeOverview(session, today);
+  return <EmployeeOverviewView data={data} />;
 }
 
-interface RecentLeaveItem {
-  id: string;
-  type: LeaveType;
-  status: LeaveStatus;
-  startDate: string;
-  endDate: string;
-  employeeName?: string;
-}
+function AdminOverviewView({ data }: { data: AdminOverview }) {
+  const {
+    firstName,
+    today,
+    window,
+    headcount,
+    openRoles,
+    onLeaveToday,
+    pendingApprovals,
+    workforce,
+    timeOffThisWeek,
+    onboarding,
+    notices,
+  } = data;
 
-interface UpcomingMeetingItem {
-  id: string;
-  title: string;
-  scheduledAt: string;
-  durationMinutes: number;
-  participantCount: number;
-}
-
-function AdminDashboard({
-  totalEmployees,
-  pendingRequests,
-  meetingsThisWeek,
-  newThisMonth,
-  recentLeave,
-  upcomingMeetings,
-}: AdminDashboardProps) {
   return (
-    <div>
-      <h1 className="mb-6 text-[28px] font-bold text-[#1D1D1F]">Dashboard</h1>
+    <div className="flex flex-col gap-8 py-2">
+      <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <PageGreeting name={firstName} date={today} />
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Btn variant="secondary" icon={IDoc}>
+            Export report
+          </Btn>
+          <Btn variant="primary" icon={IPlus}>
+            New request
+          </Btn>
+        </div>
+      </header>
 
-      {/* Stat cards */}
-      <section aria-label="Statistics" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          label="Total Employees"
-          value={totalEmployees}
-          icon={<Users className="h-6 w-6 text-apple-blue" />}
+      <section
+        aria-label="Key metrics"
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
+      >
+        <KpiCard
+          label="Headcount"
+          value={headcount.total}
+          delta={
+            headcount.deltaThisMonth > 0
+              ? { dir: "up", label: `+${headcount.deltaThisMonth} this month` }
+              : { dir: "flat", label: "no change this month" }
+          }
+          footer={{
+            kind: "sparkline",
+            points: headcount.sparkline,
+            tone: "neutral",
+          }}
         />
-        <StatCard
-          label="Pending Requests"
-          value={pendingRequests}
-          icon={<CalendarOff className="h-6 w-6 text-apple-orange" />}
-          href="/leave/manage"
+        <KpiCard
+          label="Open roles"
+          value={openRoles.count}
+          pill={openRoles.priority ? <Pill variant="count">priority</Pill> : undefined}
+          delta={
+            openRoles.deltaSinceLastWeek > 0
+              ? { dir: "up", label: `+${openRoles.deltaSinceLastWeek} since last week` }
+              : { dir: "flat", label: "stable" }
+          }
+          footer={{
+            kind: "sparkline",
+            points: openRoles.sparkline,
+            tone: "brand",
+          }}
         />
-        <StatCard
-          label="Meetings This Week"
-          value={meetingsThisWeek}
-          icon={<Calendar className="h-6 w-6 text-apple-indigo" />}
+        <KpiCard
+          label="On leave today"
+          value={onLeaveToday.count}
+          footer={{
+            kind: "stack",
+            avatars: onLeaveToday.avatars,
+            trailing: `of ${onLeaveToday.total}`,
+          }}
         />
-        <StatCard
-          label="New This Month"
-          value={newThisMonth}
-          icon={<UserPlus className="h-6 w-6 text-apple-green" />}
+        <KpiCard
+          label="Pending approvals"
+          value={pendingApprovals.count}
+          unit={`/${pendingApprovals.total}`}
+          delta={
+            pendingApprovals.clearedToday > 0
+              ? { dir: "down", label: `−${pendingApprovals.clearedToday} cleared today` }
+              : { dir: "flat", label: "queue steady" }
+          }
+          footer={{
+            kind: "sparkline",
+            points: pendingApprovals.sparkline,
+            tone: "neutral",
+          }}
         />
       </section>
 
-      {/* Recent lists */}
-      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Recent Leave Requests */}
-        <div className="rounded-[10px] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-[17px] font-semibold text-[#1D1D1F]">
-              Recent Leave Requests
-            </h2>
-            <Link
-              href="/leave"
-              className="text-[15px] font-medium text-apple-blue"
-            >
-              View all
-            </Link>
-          </div>
-          {recentLeave.length === 0 ? (
-            <p className="py-4 text-center text-[15px] text-[#8E8E93]">
-              No leave requests yet.
-            </p>
-          ) : (
-            <ul className="divide-y divide-[#E5E5EA]">
-              {recentLeave.map((lr) => (
-                <li key={lr.id} className="flex items-center justify-between py-3">
-                  <div>
-                    <p className="text-[15px] font-medium text-[#1D1D1F]">
-                      {lr.employeeName}
-                    </p>
-                    <p className="text-[13px] text-[#8E8E93]">
-                      {formatLeaveType(lr.type)} &middot;{" "}
-                      {formatDateRange(lr.startDate, lr.endDate)}
-                    </p>
-                  </div>
-                  <LeaveStatusBadge status={lr.status} />
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <DonutCard counts={workforce} />
+        <TimeOffThisWeekCard
+          weekStart={window.weekStart}
+          weekEnd={window.weekEnd}
+          rows={timeOffThisWeek as TimeOffRow[]}
+        />
+      </section>
 
-        {/* Upcoming Meetings */}
-        <div className="rounded-[10px] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-[17px] font-semibold text-[#1D1D1F]">
-              Upcoming Meetings
-            </h2>
-            <Link
-              href="/calendar"
-              className="text-[15px] font-medium text-apple-blue"
-            >
-              View all
-            </Link>
-          </div>
-          {upcomingMeetings.length === 0 ? (
-            <p className="py-4 text-center text-[15px] text-[#8E8E93]">
-              No upcoming meetings.
-            </p>
-          ) : (
-            <ul className="divide-y divide-[#E5E5EA]">
-              {upcomingMeetings.map((m) => (
-                <li key={m.id} className="flex items-center justify-between py-3">
-                  <div>
-                    <p className="text-[15px] font-medium text-[#1D1D1F]">
-                      {m.title}
-                    </p>
-                    <p className="text-[13px] text-[#8E8E93]">
-                      {formatMeetingTime(m.scheduledAt)} &middot;{" "}
-                      {m.durationMinutes} min &middot; {m.participantCount}{" "}
-                      {m.participantCount === 1 ? "person" : "people"}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {onboarding ? (
+          <OnboardingTrackerCard data={toOnboardingTrackerData(onboarding)} />
+        ) : (
+          <EmptyCard title="Onboarding" body="No active onboarding plans." />
+        )}
+        <NoticeBoardCard notices={notices.map(toNoticeView)} now={today} />
+      </section>
     </div>
   );
 }
 
-/* ── Employee view ───────────────────────────────────────────── */
+function EmployeeOverviewView({ data }: { data: EmployeeOverview }) {
+  const { firstName, today, myLeave, myMeetings } = data;
 
-interface EmployeeDashboardProps {
-  name: string;
-  myLeave: RecentLeaveItem[];
-  myMeetings: UpcomingMeetingItem[];
-}
-
-function EmployeeDashboard({
-  name,
-  myLeave,
-  myMeetings,
-}: EmployeeDashboardProps) {
   return (
-    <div>
-      <h1 className="mb-2 text-[28px] font-bold text-[#1D1D1F]">
-        Welcome, {name}
-      </h1>
-      <p className="mb-6 text-[15px] text-[#8E8E93]">
-        Here&apos;s what&apos;s happening for you.
-      </p>
+    <div className="flex flex-col gap-8 py-2">
+      <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <PageGreeting name={firstName} date={today} />
+      </header>
 
-      {/* Quick actions */}
-      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <section
+        aria-label="Quick actions"
+        className="grid grid-cols-1 gap-4 sm:grid-cols-3"
+      >
         <QuickAction
           href="/leave/request"
-          icon={<ClipboardList className="h-6 w-6 text-apple-blue" />}
-          label="Request Leave"
+          icon={<ILeave width={20} height={20} />}
+          label="Request leave"
+          description="Submit a vacation, day-off, or sick leave"
         />
         <QuickAction
           href="/calendar"
-          icon={<CalendarDays className="h-6 w-6 text-apple-indigo" />}
+          icon={<ICal width={20} height={20} />}
           label="Calendar"
+          description="See upcoming meetings and team availability"
         />
         <QuickAction
           href="/profile"
-          icon={<User className="h-6 w-6 text-apple-green" />}
-          label="My Profile"
+          icon={<IUser width={20} height={20} />}
+          label="My profile"
+          description="Personal details, certifications, contacts"
         />
-      </div>
+      </section>
 
-      {/* Own data */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* My Leave Requests */}
-        <div className="rounded-[10px] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-[17px] font-semibold text-[#1D1D1F]">
-              My Leave Requests
-            </h2>
-            <Link
-              href="/leave"
-              className="text-[15px] font-medium text-apple-blue"
-            >
-              View all
-            </Link>
-          </div>
-          {myLeave.length === 0 ? (
-            <p className="py-4 text-center text-[15px] text-[#8E8E93]">
-              No leave requests.
-            </p>
-          ) : (
-            <ul className="divide-y divide-[#E5E5EA]">
-              {myLeave.map((lr) => (
-                <li key={lr.id} className="flex items-center justify-between py-3">
-                  <div>
-                    <p className="text-[15px] font-medium text-[#1D1D1F]">
-                      {formatLeaveType(lr.type)}
-                    </p>
-                    <p className="text-[13px] text-[#8E8E93]">
-                      {formatDateRange(lr.startDate, lr.endDate)}
-                    </p>
-                  </div>
-                  <LeaveStatusBadge status={lr.status} />
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {/* My Upcoming Meetings */}
-        <div className="rounded-[10px] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-[17px] font-semibold text-[#1D1D1F]">
-              Upcoming Meetings
-            </h2>
-            <Link
-              href="/calendar"
-              className="text-[15px] font-medium text-apple-blue"
-            >
-              View all
-            </Link>
-          </div>
-          {myMeetings.length === 0 ? (
-            <p className="py-4 text-center text-[15px] text-[#8E8E93]">
-              No upcoming meetings.
-            </p>
-          ) : (
-            <ul className="divide-y divide-[#E5E5EA]">
-              {myMeetings.map((m) => (
-                <li key={m.id} className="flex items-center justify-between py-3">
-                  <div>
-                    <p className="text-[15px] font-medium text-[#1D1D1F]">
-                      {m.title}
-                    </p>
-                    <p className="text-[13px] text-[#8E8E93]">
-                      {formatMeetingTime(m.scheduledAt)} &middot;{" "}
-                      {m.durationMinutes} min
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <MyLeaveCard leave={myLeave} />
+        <UpcomingMeetingsCard meetings={myMeetings} now={today} />
+      </section>
     </div>
   );
 }
 
-/* ── Quick action card ───────────────────────────────────────── */
-
-interface QuickActionProps {
-  href: string;
-  icon: ReactNode;
-  label: string;
+function DonutCard({ counts }: { counts: AdminOverview["workforce"] }) {
+  return (
+    <div className="rounded-[var(--radius-curie-lg)] bg-[var(--color-curie-surface)] p-6">
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <div
+            className={cn(
+              "font-[family-name:var(--font-curie-display)]",
+              "text-[20px] font-medium leading-tight tracking-[-0.015em]",
+              "text-[var(--color-curie-fg)]",
+            )}
+          >
+            Workforce composition
+          </div>
+          <div className="mt-0.5 text-[12px] text-[var(--color-curie-fg-muted)]">
+            By employment type · current month
+          </div>
+        </div>
+        <Link
+          href="/employees"
+          className={cn(
+            "inline-flex items-center gap-1",
+            "text-[13px] font-medium",
+            "text-[var(--color-curie-fg-secondary)]",
+          )}
+        >
+          View detail <IArrowRight width={14} height={14} />
+        </Link>
+      </div>
+      <WorkforceCompositionDonut counts={counts} />
+    </div>
+  );
 }
 
-function QuickAction({ href, icon, label }: QuickActionProps) {
+function EmptyCard({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-[var(--radius-curie-lg)] bg-[var(--color-curie-surface)] p-6">
+      <div
+        className={cn(
+          "font-[family-name:var(--font-curie-display)]",
+          "text-[20px] font-medium leading-tight tracking-[-0.015em]",
+        )}
+      >
+        {title}
+      </div>
+      <p className="mt-2 text-[13px] text-[var(--color-curie-fg-muted)]">{body}</p>
+    </div>
+  );
+}
+
+function QuickAction({
+  href,
+  icon,
+  label,
+  description,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+  description: string;
+}) {
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 rounded-[10px] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)] transition-all duration-150 hover:bg-[#F9F9FB] active:scale-[0.98]"
+      className={cn(
+        "group flex items-start gap-3 rounded-[var(--radius-curie-lg)] p-5",
+        "bg-[var(--color-curie-surface)]",
+        "transition-colors hover:bg-[var(--color-curie-surface-sunken)]",
+      )}
     >
-      {icon}
-      <span className="text-[15px] font-medium text-[#1D1D1F]">{label}</span>
+      <span
+        aria-hidden="true"
+        className={cn(
+          "grid h-10 w-10 shrink-0 place-items-center rounded-[var(--radius-curie-md)]",
+          "bg-[var(--color-curie-brand-soft)]",
+          "text-[var(--color-curie-brand-ink)]",
+        )}
+      >
+        {icon}
+      </span>
+      <div>
+        <div
+          className={cn(
+            "font-[family-name:var(--font-curie-display)]",
+            "text-[16px] font-medium tracking-[-0.01em]",
+            "text-[var(--color-curie-fg)]",
+          )}
+        >
+          {label}
+        </div>
+        <div className="mt-0.5 text-[12px] text-[var(--color-curie-fg-muted)]">
+          {description}
+        </div>
+      </div>
     </Link>
   );
 }
 
-/* ── Leave status badge ──────────────────────────────────────── */
-
-function LeaveStatusBadge({ status }: { status: LeaveStatus }) {
-  const styles: Record<string, string> = {
-    PENDING: "bg-[#FF9500]/10 text-[#FF9500]",
-    APPROVED: "bg-[#34C759]/10 text-[#34C759]",
-    REJECTED: "bg-[#FF3B30]/10 text-[#FF3B30]",
-  };
-
-  const labels: Record<string, string> = {
-    PENDING: "Pending",
-    APPROVED: "Approved",
-    REJECTED: "Rejected",
-  };
-
+function MyLeaveCard({ leave }: { leave: EmployeeOverview["myLeave"] }) {
   return (
-    <span
-      className={`inline-flex rounded-full px-2 py-0.5 text-[12px] font-semibold ${styles[status] ?? ""}`}
-    >
-      {labels[status] ?? status}
-    </span>
+    <div className="rounded-[var(--radius-curie-lg)] bg-[var(--color-curie-surface)] p-6">
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <div
+            className={cn(
+              "font-[family-name:var(--font-curie-display)]",
+              "text-[20px] font-medium leading-tight tracking-[-0.015em]",
+            )}
+          >
+            My leave
+          </div>
+          <div className="mt-0.5 text-[12px] text-[var(--color-curie-fg-muted)]">
+            Recent requests
+          </div>
+        </div>
+        <Link
+          href="/leave"
+          className="text-[13px] font-medium text-[var(--color-curie-fg-secondary)]"
+        >
+          See all →
+        </Link>
+      </div>
+      {leave.length === 0 ? (
+        <p className="text-[13px] text-[var(--color-curie-fg-muted)]">
+          You haven&apos;t submitted any leave requests.
+        </p>
+      ) : (
+        <ul className="divide-y divide-[var(--color-curie-border)]">
+          {leave.map((lr) => (
+            <li key={lr.id} className="flex items-center justify-between gap-3 py-3">
+              <div>
+                <div className="text-[14px] font-semibold text-[var(--color-curie-fg)]">
+                  {formatLeaveType(lr.type)}
+                </div>
+                <div
+                  className={cn(
+                    "font-[family-name:var(--font-curie-mono)]",
+                    "text-[12px] text-[var(--color-curie-fg-muted)]",
+                  )}
+                >
+                  {formatDateRange(lr.startDate, lr.endDate)}
+                </div>
+              </div>
+              <LeaveStatusPill status={lr.status} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 
-/* ── Formatters ──────────────────────────────────────────────── */
-
-function formatLeaveType(type: LeaveType): string {
-  const map: Record<string, string> = {
-    SICK_LEAVE: "Sick Leave",
-    DAY_OFF: "Day Off",
-    VACATION: "Vacation",
-  };
-  return map[type] ?? type;
-}
-
-function formatDateRange(start: string, end: string): string {
-  const fmt = (d: string) =>
-    new Date(d).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-  return start === end ? fmt(start) : `${fmt(start)} – ${fmt(end)}`;
-}
-
-function formatMeetingTime(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
-/* ── Page (server component) ─────────────────────────────────── */
-
-export default async function DashboardPage() {
-  const session = await requireAuth();
-  const isAdmin = session.user.role === "ADMIN";
-
-  const now = new Date();
-
-  // Week boundaries (Mon–Sun)
-  const dow = now.getDay();
-  const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((dow + 6) % 7));
-  const weekEnd = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 7);
-
-  // Month boundaries
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-
-  if (isAdmin) {
-    const [
-      totalEmployees,
-      pendingRequests,
-      meetingsThisWeek,
-      newThisMonth,
-      recentLeaveRaw,
-      upcomingMeetingsRaw,
-    ] = await Promise.all([
-      prisma.employee.count(),
-      prisma.leaveRequest.count({ where: { status: "PENDING" } }),
-      prisma.meeting.count({
-        where: { scheduledAt: { gte: weekStart, lt: weekEnd } },
-      }),
-      prisma.employee.count({
-        where: { createdAt: { gte: monthStart, lt: monthEnd } },
-      }),
-      prisma.leaveRequest.findMany({
-        take: 5,
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          type: true,
-          status: true,
-          startDate: true,
-          endDate: true,
-          user: {
-            select: {
-              employee: {
-                select: { firstName: true, lastName: true },
-              },
-            },
-          },
-        },
-      }),
-      prisma.meeting.findMany({
-        where: { scheduledAt: { gte: now } },
-        take: 5,
-        orderBy: { scheduledAt: "asc" },
-        select: {
-          id: true,
-          title: true,
-          scheduledAt: true,
-          durationMinutes: true,
-          _count: { select: { participants: true } },
-        },
-      }),
-    ]);
-
-    const recentLeave: RecentLeaveItem[] = recentLeaveRaw.map((lr) => ({
-      id: lr.id,
-      type: lr.type,
-      status: lr.status,
-      startDate: lr.startDate.toISOString(),
-      endDate: lr.endDate.toISOString(),
-      employeeName: lr.user.employee
-        ? `${lr.user.employee.firstName} ${lr.user.employee.lastName}`
-        : "Unknown",
-    }));
-
-    const upcomingMeetings: UpcomingMeetingItem[] = upcomingMeetingsRaw.map(
-      (m) => ({
-        id: m.id,
-        title: m.title,
-        scheduledAt: m.scheduledAt.toISOString(),
-        durationMinutes: m.durationMinutes,
-        participantCount: m._count.participants,
-      }),
-    );
-
-    return (
-      <AdminDashboard
-        totalEmployees={totalEmployees}
-        pendingRequests={pendingRequests}
-        meetingsThisWeek={meetingsThisWeek}
-        newThisMonth={newThisMonth}
-        recentLeave={recentLeave}
-        upcomingMeetings={upcomingMeetings}
-      />
-    );
-  }
-
-  // Employee view — all three queries in parallel
-  const [employee, myLeaveRaw, myMeetingsRaw] = await Promise.all([
-    prisma.employee.findFirst({
-      where: { userId: session.user.id },
-      select: { firstName: true },
-    }),
-    prisma.leaveRequest.findMany({
-      where: { userId: session.user.id },
-      take: 5,
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        type: true,
-        status: true,
-        startDate: true,
-        endDate: true,
-      },
-    }),
-    prisma.meeting.findMany({
-      where: {
-        scheduledAt: { gte: now },
-        participants: { some: { userId: session.user.id } },
-      },
-      take: 5,
-      orderBy: { scheduledAt: "asc" },
-      select: {
-        id: true,
-        title: true,
-        scheduledAt: true,
-        durationMinutes: true,
-        _count: { select: { participants: true } },
-      },
-    }),
-  ]);
-
-  const myLeave: RecentLeaveItem[] = myLeaveRaw.map((lr) => ({
-    id: lr.id,
-    type: lr.type,
-    status: lr.status,
-    startDate: lr.startDate.toISOString(),
-    endDate: lr.endDate.toISOString(),
-  }));
-
-  const myMeetings: UpcomingMeetingItem[] = myMeetingsRaw.map((m) => ({
-    id: m.id,
-    title: m.title,
-    scheduledAt: m.scheduledAt.toISOString(),
-    durationMinutes: m.durationMinutes,
-    participantCount: m._count.participants,
-  }));
-
+function UpcomingMeetingsCard({
+  meetings,
+  now,
+}: {
+  meetings: EmployeeOverview["myMeetings"];
+  now: Date;
+}) {
   return (
-    <EmployeeDashboard
-      name={employee?.firstName ?? session.user.name ?? "there"}
-      myLeave={myLeave}
-      myMeetings={myMeetings}
-    />
+    <div className="rounded-[var(--radius-curie-lg)] bg-[var(--color-curie-surface)] p-6">
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <div
+            className={cn(
+              "font-[family-name:var(--font-curie-display)]",
+              "text-[20px] font-medium leading-tight tracking-[-0.015em]",
+            )}
+          >
+            Today
+          </div>
+          <div className="mt-0.5 text-[12px] text-[var(--color-curie-fg-muted)]">
+            Your meetings
+          </div>
+        </div>
+        <Link
+          href="/calendar"
+          className="text-[13px] font-medium text-[var(--color-curie-fg-secondary)]"
+        >
+          See all →
+        </Link>
+      </div>
+      {meetings.length === 0 ? (
+        <p className="text-[13px] text-[var(--color-curie-fg-muted)]">
+          Nothing scheduled today.
+        </p>
+      ) : (
+        <ul className="flex flex-col gap-3">
+          {meetings.map((m) => {
+            const end = new Date(m.scheduledAt.getTime() + m.durationMinutes * 60_000);
+            const isNow =
+              now.getTime() >= m.scheduledAt.getTime() && now.getTime() < end.getTime();
+            return (
+              <li key={m.id} className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-[14px] font-semibold text-[var(--color-curie-fg)]">
+                    {m.title}
+                  </div>
+                  <div
+                    className={cn(
+                      "font-[family-name:var(--font-curie-mono)]",
+                      "text-[12px] text-[var(--color-curie-fg-muted)]",
+                    )}
+                  >
+                    {formatTime(m.scheduledAt)} — {formatTime(end)}
+                    {isNow ? " · Now" : ""}
+                  </div>
+                </div>
+                <Pill variant={isNow ? "status-info" : "tag"}>{m.badge.label}</Pill>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
   );
+}
+
+function LeaveStatusPill({ status }: { status: "PENDING" | "APPROVED" | "REJECTED" }) {
+  if (status === "PENDING") return <Pill variant="status-pending">Pending</Pill>;
+  if (status === "APPROVED") return <Pill variant="status-approved">Approved</Pill>;
+  return <Pill variant="status-rejected">Rejected</Pill>;
+}
+
+function toNoticeView(notice: NoticeRow): NoticeView {
+  return {
+    id: notice.id,
+    author: notice.author,
+    tag: notice.tag,
+    createdAt: notice.createdAt,
+    body: notice.body,
+    title: notice.title,
+  };
+}
+
+function toOnboardingTrackerData(row: OnboardingPlanRow): OnboardingTrackerData {
+  return {
+    employeeName: row.employeeName,
+    position: row.position,
+    startDate: row.startDate,
+    status: row.status,
+    steps: row.steps,
+  };
+}
+
+const LEAVE_TYPE_LABEL: Record<string, string> = {
+  SICK_LEAVE: "Sick leave",
+  DAY_OFF: "Day off",
+  VACATION: "Vacation",
+};
+
+function formatLeaveType(type: string): string {
+  return LEAVE_TYPE_LABEL[type] ?? type;
+}
+
+const MONTHS_SHORT = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+function shortDate(date: Date): string {
+  return `${MONTHS_SHORT[date.getUTCMonth()]} ${date.getUTCDate()}`;
+}
+
+function formatDateRange(start: Date, end: Date): string {
+  return start.getTime() === end.getTime()
+    ? shortDate(start)
+    : `${shortDate(start)} → ${shortDate(end)}`;
+}
+
+function pad2(n: number): string {
+  return n < 10 ? `0${n}` : `${n}`;
+}
+
+function formatTime(date: Date): string {
+  return `${pad2(date.getUTCHours())}:${pad2(date.getUTCMinutes())}`;
 }

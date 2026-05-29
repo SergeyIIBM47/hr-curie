@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { EmployeeSearch } from "@/components/employees/employee-search";
 import { EmployeeTable } from "@/components/employees/employee-table";
 import { EmployeeCard } from "@/components/employees/employee-card";
+import { Btn, IPlus } from "@/components/curie";
+import { cn } from "@/lib/utils";
 import type { EmployeeListItem } from "@/types/employee";
 
 const employeeSelect = {
@@ -49,25 +51,30 @@ export default async function EmployeesPage({
   });
 
   return (
-    <div>
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-[28px] font-bold text-[#1D1D1F]">Employees</h1>
-          <p className="text-[15px] text-[#8E8E93]">
+          <h1
+            className={cn(
+              "font-[family-name:var(--font-curie-display)]",
+              "text-[28px] font-medium leading-tight tracking-[-0.015em]",
+              "text-[var(--color-curie-fg)]",
+            )}
+          >
+            Employees
+          </h1>
+          <p className="text-[15px] text-[var(--color-curie-fg-secondary)]">
             {employees.length} {employees.length === 1 ? "employee" : "employees"}
           </p>
         </div>
-        <Link
-          href="/employees/new"
-          className="inline-flex h-[44px] w-full items-center justify-center rounded-[8px] bg-[#007AFF] px-5 text-[17px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98] sm:w-auto"
-        >
-          Add Employee
+        <Link href="/employees/new" className="sm:self-start">
+          <Btn variant="primary" icon={IPlus}>
+            Add Employee
+          </Btn>
         </Link>
       </div>
 
-      <div className="mb-6">
-        <EmployeeSearch />
-      </div>
+      <EmployeeSearch />
 
       <EmployeeTable employees={employees} />
 
@@ -76,7 +83,7 @@ export default async function EmployeesPage({
           <EmployeeCard key={emp.id} employee={emp} />
         ))}
         {employees.length === 0 && (
-          <p className="py-8 text-center text-[15px] text-[#8E8E93]">
+          <p className="py-8 text-center text-[15px] text-[var(--color-curie-fg-muted)]">
             No employees found.
           </p>
         )}

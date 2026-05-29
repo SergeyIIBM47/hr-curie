@@ -12,6 +12,8 @@ import {
   type CreateEmployeeInput,
   type UpdateEmployeeInput,
 } from "@/lib/validations/employee";
+import { Btn } from "@/components/curie";
+import { cn } from "@/lib/utils";
 
 interface EmploymentType {
   id: string;
@@ -36,11 +38,47 @@ interface EditFormProps extends EmployeeFormBaseProps {
 
 type EmployeeFormProps = CreateFormProps | EditFormProps;
 
-const inputClass =
-  "h-[44px] w-full rounded-[8px] bg-[rgba(120,120,128,0.12)] px-3 text-[17px] text-[#1D1D1F] outline-none placeholder:text-[rgba(60,60,67,0.3)] focus:ring-2 focus:ring-[#007AFF]/40";
+const inputClass = cn(
+  "h-10 w-full px-3",
+  "rounded-[var(--radius-curie-sm)]",
+  "border border-[var(--color-curie-border)]",
+  "bg-[var(--color-curie-surface)]",
+  "text-[14px] text-[var(--color-curie-fg)]",
+  "outline-none",
+  "placeholder:text-[var(--color-curie-fg-muted)]",
+  "focus:border-[var(--color-curie-brand)]",
+  "focus:ring-2 focus:ring-[var(--color-curie-brand-soft)]",
+);
 
-const readOnlyInputClass =
-  "h-[44px] w-full rounded-[8px] bg-[rgba(120,120,128,0.06)] px-3 text-[17px] text-[#8E8E93] outline-none cursor-not-allowed";
+const readOnlyInputClass = cn(
+  "h-10 w-full px-3",
+  "rounded-[var(--radius-curie-sm)]",
+  "border border-[var(--color-curie-border)]",
+  "bg-[var(--color-curie-surface-sunken)]",
+  "text-[14px] text-[var(--color-curie-fg-muted)]",
+  "outline-none cursor-not-allowed",
+);
+
+const cardClass = cn(
+  "p-6",
+  "rounded-[var(--radius-curie-lg)]",
+  "bg-[var(--color-curie-surface)]",
+  "border border-[var(--color-curie-border)]",
+  "shadow-[var(--shadow-curie-soft)]",
+);
+
+const sectionHeading = cn(
+  "mb-6",
+  "text-[11px] font-medium uppercase tracking-[0.06em]",
+  "font-[family-name:var(--font-curie-mono)]",
+  "text-[var(--color-curie-fg-muted)]",
+);
+
+const labelClass = cn(
+  "mb-1.5 block",
+  "text-[13px] font-medium",
+  "text-[var(--color-curie-fg-secondary)]",
+);
 
 function FormField({
   label,
@@ -55,14 +93,15 @@ function FormField({
 }) {
   return (
     <div>
-      <label
-        htmlFor={htmlFor}
-        className="mb-1.5 block text-[16px] text-[#3C3C43]"
-      >
+      <label htmlFor={htmlFor} className={labelClass}>
         {label}
       </label>
       {children}
-      {error && <p className="mt-1 text-[13px] text-[#FF3B30]">{error}</p>}
+      {error && (
+        <p className="mt-1 text-[12px] text-[var(--color-curie-danger)]">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
@@ -125,13 +164,11 @@ export function EmployeeForm(props: EmployeeFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
       {/* Section 1: Required */}
-      <div className="rounded-[10px] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]">
-        <h2 className="mb-5 text-[20px] font-semibold text-[#1D1D1F]">
-          Required Information
-        </h2>
-        <div className="grid gap-5 md:grid-cols-2">
+      <div className={cardClass}>
+        <h2 className={sectionHeading}>Required Information</h2>
+        <div className="grid gap-6 md:grid-cols-2">
           <FormField
             label="First Name"
             htmlFor={fieldId("firstName")}
@@ -273,11 +310,9 @@ export function EmployeeForm(props: EmployeeFormProps) {
       </div>
 
       {/* Section 2: Optional */}
-      <div className="mt-6 rounded-[10px] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]">
-        <h2 className="mb-5 text-[20px] font-semibold text-[#1D1D1F]">
-          Optional Information
-        </h2>
-        <div className="grid gap-5 md:grid-cols-2">
+      <div className={cardClass}>
+        <h2 className={sectionHeading}>Optional Information</h2>
+        <div className="grid gap-6 md:grid-cols-2">
           <FormField
             label="Phone"
             htmlFor={fieldId("phone")}
@@ -398,31 +433,27 @@ export function EmployeeForm(props: EmployeeFormProps) {
       </div>
 
       {/* Actions */}
-      <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-        <button
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <Btn
+          variant="secondary"
           type="button"
           onClick={() =>
             router.push(
               isEdit ? `/employees/${props.employeeId}` : "/employees",
             )
           }
-          className="h-[44px] w-full rounded-[8px] px-5 text-[17px] font-semibold text-[#007AFF] transition-colors duration-150 hover:bg-[#E5E5EA] sm:w-auto"
         >
           Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={submitting}
-          className="inline-flex h-[44px] w-full items-center justify-center rounded-[8px] bg-[#007AFF] px-6 text-[17px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98] disabled:opacity-60 sm:w-auto"
-        >
+        </Btn>
+        <Btn variant="primary" type="submit" disabled={submitting}>
           {submitting ? (
-            <Loader2 className="size-5 animate-spin" />
+            <Loader2 className="size-4 animate-spin" />
           ) : isEdit ? (
             "Save Changes"
           ) : (
             "Create Employee"
           )}
-        </button>
+        </Btn>
       </div>
     </form>
   );

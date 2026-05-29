@@ -3,38 +3,33 @@ import { render, screen } from "@testing-library/react";
 import { LeaveStatusBadge } from "./leave-status-badge";
 
 describe("LeaveStatusBadge", () => {
-  it("renders PENDING badge with orange styling", () => {
+  it("renders PENDING badge as status-pending pill", () => {
     render(<LeaveStatusBadge status="PENDING" />);
     const badge = screen.getByText("Pending");
     expect(badge).toBeInTheDocument();
-    expect(badge.className).toContain("text-[#FF9500]");
-    expect(badge.className).toContain("bg-[#FF9500]/15");
+    expect(badge.getAttribute("data-curie")).toBe("pill");
+    expect(badge.getAttribute("data-variant")).toBe("status-pending");
   });
 
-  it("renders APPROVED badge with green styling", () => {
+  it("renders APPROVED badge as status-approved pill", () => {
     render(<LeaveStatusBadge status="APPROVED" />);
     const badge = screen.getByText("Approved");
     expect(badge).toBeInTheDocument();
-    expect(badge.className).toContain("text-[#34C759]");
-    expect(badge.className).toContain("bg-[#34C759]/15");
+    expect(badge.getAttribute("data-curie")).toBe("pill");
+    expect(badge.getAttribute("data-variant")).toBe("status-approved");
   });
 
-  it("renders REJECTED badge with red styling", () => {
+  it("renders REJECTED badge as status-rejected pill", () => {
     render(<LeaveStatusBadge status="REJECTED" />);
     const badge = screen.getByText("Rejected");
     expect(badge).toBeInTheDocument();
-    expect(badge.className).toContain("text-[#FF3B30]");
-    expect(badge.className).toContain("bg-[#FF3B30]/15");
+    expect(badge.getAttribute("data-curie")).toBe("pill");
+    expect(badge.getAttribute("data-variant")).toBe("status-rejected");
   });
 
-  it("applies common badge styles", () => {
+  it("uppercases the label", () => {
     render(<LeaveStatusBadge status="PENDING" />);
     const badge = screen.getByText("Pending");
-    expect(badge.className).toContain("rounded-[6px]");
-    expect(badge.className).toContain("px-2.5");
-    expect(badge.className).toContain("py-0.5");
-    expect(badge.className).toContain("text-[12px]");
-    expect(badge.className).toContain("font-semibold");
     expect(badge.className).toContain("uppercase");
   });
 });

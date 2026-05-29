@@ -59,7 +59,6 @@ describe("EmployeeTable", () => {
     render(<EmployeeTable employees={mockEmployees} />);
 
     expect(screen.getByText("Name")).toBeInTheDocument();
-    expect(screen.getByText("Email")).toBeInTheDocument();
     expect(screen.getByText("Role")).toBeInTheDocument();
     expect(screen.getByText("Department")).toBeInTheDocument();
     expect(screen.getByText("Employment Type")).toBeInTheDocument();
@@ -82,21 +81,16 @@ describe("EmployeeTable", () => {
     expect(screen.getByText("JD")).toBeInTheDocument();
   });
 
-  it("shows employee email", () => {
-    render(<EmployeeTable employees={mockEmployees} />);
-
-    expect(screen.getByText("sofia@company.com")).toBeInTheDocument();
-    expect(screen.getByText("john@company.com")).toBeInTheDocument();
-  });
-
-  it("renders role as badge", () => {
+  it("renders role as pill", () => {
     render(<EmployeeTable employees={mockEmployees} />);
 
     const adminBadge = screen.getByText("Admin");
-    expect(adminBadge.className).toContain("text-[#5856D6]");
+    expect(adminBadge.getAttribute("data-curie")).toBe("pill");
+    expect(adminBadge.getAttribute("data-variant")).toBe("role");
 
     const employeeBadges = screen.getAllByText("Employee");
-    expect(employeeBadges[0].className).toContain("text-[#007AFF]");
+    expect(employeeBadges[0].getAttribute("data-curie")).toBe("pill");
+    expect(employeeBadges[0].getAttribute("data-variant")).toBe("role");
   });
 
   it("shows department or dash when null", () => {

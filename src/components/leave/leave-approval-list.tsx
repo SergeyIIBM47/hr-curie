@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CheckCircle } from "lucide-react";
 import { LeaveApprovalCard } from "./leave-approval-card";
+import { cn } from "@/lib/utils";
 
 interface PendingLeaveRequest {
   id: string;
@@ -34,12 +35,25 @@ export function LeaveApprovalList({ initialRequests }: LeaveApprovalListProps) {
 
   if (requests.length === 0) {
     return (
-      <div className="rounded-[10px] bg-white p-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]">
-        <CheckCircle className="mx-auto mb-3 size-12 text-[#34C759]" />
-        <p className="text-[17px] font-medium text-[#1D1D1F]">
+      <div
+        className={cn(
+          "p-8 text-center",
+          "rounded-[var(--radius-curie-lg)]",
+          "border border-[var(--color-curie-border)]",
+          "bg-[var(--color-curie-surface)]",
+          "shadow-[var(--shadow-curie-soft)]",
+        )}
+      >
+        <CheckCircle className="mx-auto mb-3 size-12 text-[var(--color-curie-success)]" />
+        <p
+          className={cn(
+            "font-[family-name:var(--font-curie-display)]",
+            "text-[20px] font-medium text-[var(--color-curie-fg)]",
+          )}
+        >
           All caught up!
         </p>
-        <p className="text-[15px] text-[#8E8E93]">
+        <p className="text-[14px] text-[var(--color-curie-fg-secondary)]">
           No pending leave requests to review.
         </p>
       </div>

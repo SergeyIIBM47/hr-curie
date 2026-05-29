@@ -8,15 +8,59 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { differenceInCalendarDays, addDays, isWeekend } from "date-fns";
 import { createLeaveSchema } from "@/lib/validations/leave";
+import { Btn } from "@/components/curie";
+import { cn } from "@/lib/utils";
 
 const leaveTypes = [
-  { value: "SICK_LEAVE", label: "🤒 Sick Leave" },
-  { value: "DAY_OFF", label: "🏠 Day Off" },
-  { value: "VACATION", label: "🏖️ Vacation" },
+  { value: "SICK_LEAVE", label: "Sick Leave" },
+  { value: "DAY_OFF", label: "Day Off" },
+  { value: "VACATION", label: "Vacation" },
 ] as const;
 
-const inputClass =
-  "h-[44px] w-full rounded-[8px] bg-[rgba(120,120,128,0.12)] px-3 text-[17px] text-[#1D1D1F] outline-none placeholder:text-[rgba(60,60,67,0.3)] focus:ring-2 focus:ring-[#007AFF]/40";
+const inputClass = cn(
+  "h-10 w-full px-3",
+  "rounded-[var(--radius-curie-sm)]",
+  "border border-[var(--color-curie-border)]",
+  "bg-[var(--color-curie-surface)]",
+  "text-[14px] text-[var(--color-curie-fg)]",
+  "outline-none",
+  "placeholder:text-[var(--color-curie-fg-muted)]",
+  "focus:border-[var(--color-curie-brand)]",
+  "focus:ring-2 focus:ring-[var(--color-curie-brand-soft)]",
+);
+
+const textareaClass = cn(
+  "w-full px-3 py-2.5",
+  "rounded-[var(--radius-curie-sm)]",
+  "border border-[var(--color-curie-border)]",
+  "bg-[var(--color-curie-surface)]",
+  "text-[14px] text-[var(--color-curie-fg)]",
+  "outline-none",
+  "placeholder:text-[var(--color-curie-fg-muted)]",
+  "focus:border-[var(--color-curie-brand)]",
+  "focus:ring-2 focus:ring-[var(--color-curie-brand-soft)]",
+);
+
+const cardClass = cn(
+  "p-6",
+  "rounded-[var(--radius-curie-lg)]",
+  "bg-[var(--color-curie-surface)]",
+  "border border-[var(--color-curie-border)]",
+  "shadow-[var(--shadow-curie-soft)]",
+);
+
+const sectionHeading = cn(
+  "mb-6",
+  "text-[11px] font-medium uppercase tracking-[0.06em]",
+  "font-[family-name:var(--font-curie-mono)]",
+  "text-[var(--color-curie-fg-muted)]",
+);
+
+const labelClass = cn(
+  "mb-1.5 block",
+  "text-[13px] font-medium",
+  "text-[var(--color-curie-fg-secondary)]",
+);
 
 function FormField({
   label,
@@ -31,14 +75,15 @@ function FormField({
 }) {
   return (
     <div>
-      <label
-        htmlFor={htmlFor}
-        className="mb-1.5 block text-[16px] text-[#3C3C43]"
-      >
+      <label htmlFor={htmlFor} className={labelClass}>
         {label}
       </label>
       {children}
-      {error && <p className="mt-1 text-[13px] text-[#FF3B30]">{error}</p>}
+      {error && (
+        <p className="mt-1 text-[12px] text-[var(--color-curie-danger)]">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
@@ -126,12 +171,10 @@ export function LeaveRequestForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="rounded-[10px] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]">
-        <h2 className="mb-5 text-[20px] font-semibold text-[#1D1D1F]">
-          Leave Details
-        </h2>
-        <div className="grid gap-5 md:grid-cols-2">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+      <div className={cardClass}>
+        <h2 className={sectionHeading}>Leave Details</h2>
+        <div className="grid gap-6 md:grid-cols-2">
           <FormField
             label="Leave Type"
             htmlFor={fieldId("type")}
@@ -184,7 +227,10 @@ export function LeaveRequestForm() {
 
           {workingDays !== null && (
             <div className="md:col-span-2">
-              <p className="text-[15px] font-medium text-[#007AFF]" data-testid="working-days">
+              <p
+                className="text-[14px] font-medium text-[var(--color-curie-brand)]"
+                data-testid="working-days"
+              >
                 {workingDays} working day{workingDays !== 1 ? "s" : ""}
               </p>
             </div>
@@ -201,32 +247,28 @@ export function LeaveRequestForm() {
                 id={fieldId("reason")}
                 rows={3}
                 placeholder="Provide a reason for your leave..."
-                className="w-full rounded-[8px] bg-[rgba(120,120,128,0.12)] px-3 py-2.5 text-[17px] text-[#1D1D1F] outline-none placeholder:text-[rgba(60,60,67,0.3)] focus:ring-2 focus:ring-[#007AFF]/40"
+                className={textareaClass}
               />
             </FormField>
           </div>
         </div>
       </div>
 
-      <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-        <button
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <Btn
+          variant="secondary"
           type="button"
           onClick={() => router.push("/leave")}
-          className="h-[44px] w-full rounded-[8px] px-5 text-[17px] font-semibold text-[#007AFF] transition-colors duration-150 hover:bg-[#E5E5EA] sm:w-auto"
         >
           Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={submitting}
-          className="inline-flex h-[44px] w-full items-center justify-center rounded-[8px] bg-[#007AFF] px-6 text-[17px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98] disabled:opacity-60 sm:w-auto"
-        >
+        </Btn>
+        <Btn variant="primary" type="submit" disabled={submitting}>
           {submitting ? (
-            <Loader2 className="size-5 animate-spin" />
+            <Loader2 className="size-4 animate-spin" />
           ) : (
             "Submit Request"
           )}
-        </button>
+        </Btn>
       </div>
     </form>
   );

@@ -42,8 +42,14 @@ describe("EmployeeCard", () => {
     expect(screen.getByText("John Doe")).toBeInTheDocument();
   });
 
-  it("renders employee email", () => {
+  it("renders employee position", () => {
     render(<EmployeeCard employee={employee} />);
+    expect(screen.getByText("Senior Developer")).toBeInTheDocument();
+  });
+
+  it("falls back to email when position is missing", () => {
+    const noPos = { ...employee, position: null };
+    render(<EmployeeCard employee={noPos} />);
     expect(screen.getByText("john@company.com")).toBeInTheDocument();
   });
 

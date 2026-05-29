@@ -5,11 +5,25 @@ import { prisma } from "@/lib/prisma";
 import { employeeDetailSelect } from "@/lib/employee-select";
 import { DetailField } from "@/components/shared/detail-field";
 import { RoleToggle } from "@/components/employees/role-toggle";
-import { getInitials, formatDateUTC, isHttpUrl } from "@/lib/utils";
+import { Avatar, Btn, Pill } from "@/components/curie";
+import { cn, formatDateUTC, isHttpUrl } from "@/lib/utils";
 
 interface EmployeeProfilePageProps {
   params: Promise<{ id: string }>;
 }
+
+const CARD_CLASS = cn(
+  "rounded-[var(--radius-curie-lg)] p-6",
+  "bg-[var(--color-curie-surface)]",
+  "border border-[var(--color-curie-border)]",
+  "shadow-[var(--shadow-curie-soft)]",
+);
+
+const SECTION_HEADING = cn(
+  "mb-6 font-[family-name:var(--font-curie-display)]",
+  "text-[20px] font-medium leading-tight tracking-[-0.015em]",
+  "text-[var(--color-curie-fg)]",
+);
 
 export default async function EmployeeProfilePage({
   params,
@@ -33,83 +47,74 @@ export default async function EmployeeProfilePage({
 
   const fullName = `${employee.firstName} ${employee.lastName}`;
   const isAdmin = session.user.role === "ADMIN";
+  const roleBadge = employee.user.role === "ADMIN" ? "Admin" : "Employee";
+  const avatarSrc =
+    employee.avatarUrl && isHttpUrl(employee.avatarUrl)
+      ? employee.avatarUrl
+      : undefined;
   const linkedinHref =
     employee.linkedinUrl && isHttpUrl(employee.linkedinUrl)
       ? employee.linkedinUrl
       : undefined;
 
   return (
-    <div>
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-          <div className="flex size-[96px] shrink-0 items-center justify-center rounded-full bg-[#E5E5EA]">
-            {employee.avatarUrl && isHttpUrl(employee.avatarUrl) ? (
-              <img
-                src={employee.avatarUrl}
-                alt={fullName}
-                className="size-full rounded-full object-cover"
-              />
-            ) : (
-              <span className="text-[28px] font-bold text-[#8E8E93]">
-                {getInitials(fullName)}
-              </span>
-            )}
+    <div className="flex flex-col gap-6">
+      {/* Header card */}
+      <div className={CARD_CLASS}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+            <Avatar name={fullName} size="lg" imageSrc={avatarSrc} />
+
+            <div className="flex flex-col items-center gap-2 sm:items-start">
+              <h1
+                className={cn(
+                  "font-[family-name:var(--font-curie-display)]",
+                  "text-[28px] font-medium leading-tight tracking-[-0.015em]",
+                  "text-[var(--color-curie-fg)]",
+                )}
+              >
+                {fullName}
+              </h1>
+              {employee.position ? (
+                <p className="text-[15px] text-[var(--color-curie-fg-secondary)]">
+                  {employee.position}
+                </p>
+              ) : null}
+              <Pill variant="role" className="uppercase">
+                {roleBadge}
+              </Pill>
+              {isAdmin ? (
+                <RoleToggle
+                  employeeId={id}
+                  currentRole={employee.user.role}
+                  isSelf={employee.user.id === session.user.id}
+                />
+              ) : null}
+            </div>
           </div>
 
-          <div className="flex flex-col items-center gap-2 sm:items-start">
-            <h1 className="text-[28px] font-bold text-[#1D1D1F]">
-              {fullName}
-            </h1>
-            {employee.position && (
-              <p className="text-[15px] text-[#8E8E93]">
-                {employee.position}
-              </p>
-            )}
-            <span
-              className={`rounded-[6px] px-2 py-0.5 text-[12px] font-semibold uppercase ${
-                employee.user.role === "ADMIN"
-                  ? "bg-[#5856D6]/15 text-[#5856D6]"
-                  : "bg-[#007AFF]/10 text-[#007AFF]"
-              }`}
-            >
-              {employee.user.role === "ADMIN" ? "Admin" : "Employee"}
-            </span>
-            {isAdmin && (
-              <RoleToggle
-                employeeId={id}
-                currentRole={employee.user.role}
-                isSelf={employee.user.id === session.user.id}
-              />
-            )}
-          </div>
+          {isAdmin ? (
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:self-start">
+              <Link href="/employees">
+                <Btn variant="secondary" size="sm">
+                  Back to List
+                </Btn>
+              </Link>
+              <Link href={`/employees/${id}/edit`}>
+                <Btn variant="primary" size="sm">
+                  Edit
+                </Btn>
+              </Link>
+            </div>
+          ) : null}
         </div>
-
-        {isAdmin && (
-          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:self-start">
-            <Link
-              href="/employees"
-              className="inline-flex h-[44px] items-center justify-center rounded-[8px] px-5 text-[17px] font-semibold text-[#007AFF] transition-colors duration-150 hover:bg-[#E5E5EA]"
-            >
-              Back to List
-            </Link>
-            <Link
-              href={`/employees/${id}/edit`}
-              className="inline-flex h-[44px] items-center justify-center rounded-[8px] bg-[#007AFF] px-5 text-[17px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98]"
-            >
-              Edit
-            </Link>
-          </div>
-        )}
       </div>
 
-      {/* Info Card */}
-      <div className="mt-6 rounded-[10px] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]">
-        <h2 className="mb-5 text-[20px] font-semibold text-[#1D1D1F]">
-          Personal Information
-        </h2>
+      {/* Info card */}
+      <div className={CARD_CLASS}>
+        <h2 className={SECTION_HEADING}>Personal Information</h2>
 
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2">
           <DetailField label="First Name" value={employee.firstName} />
           <DetailField label="Last Name" value={employee.lastName} />
           <DetailField label="Work Email" value={employee.workEmail} />
@@ -125,10 +130,7 @@ export default async function EmployeeProfilePage({
             label="Actual Residence"
             value={employee.actualResidence}
           />
-          <DetailField
-            label="Start Year"
-            value={String(employee.startYear)}
-          />
+          <DetailField label="Start Year" value={String(employee.startYear)} />
           {employee.phone && (
             <DetailField label="Phone" value={employee.phone} />
           )}

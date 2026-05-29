@@ -34,16 +34,15 @@ export {
   WorkforceCompositionDonut,
   type WorkforceCount,
 } from "./workforce-composition-donut";
-export { TimeOffThisWeekCard } from "./time-off-this-week-card";
-export {
-  OnboardingTrackerCard,
-  type OnboardingTrackerData,
-  type OnboardingStepView,
-} from "./onboarding-tracker-card";
-export { NoticeBoardCard, type NoticeView } from "./notice-board-card";
 export { MiniCalendar } from "./mini-calendar";
-export {
-  TodayScheduleList,
-  type ScheduleItem,
-} from "./today-schedule-list";
-export { ComingUpList } from "./coming-up-list";
+
+// Server-only (Prisma) components are NOT re-exported here so that
+// client components can safely import primitives from "@/components/curie"
+// without bundling the server-only modules. Import these from their
+// individual files: "@/components/curie/<file>".
+export type {
+  OnboardingTrackerData,
+  OnboardingStepView,
+} from "./onboarding-tracker-card";
+export type { NoticeView } from "./notice-board-card";
+export type { ScheduleItem } from "./today-schedule-list";

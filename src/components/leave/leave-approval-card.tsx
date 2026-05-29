@@ -3,7 +3,6 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -13,8 +12,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { LeaveStatusBadge } from "./leave-status-badge";
-import { formatDateUTC, getInitials } from "@/lib/utils";
+import { formatDateUTC, cn } from "@/lib/utils";
 import { countWorkingDays } from "./leave-request-form";
+import { Avatar, Btn } from "@/components/curie";
 
 interface PendingLeaveRequest {
   id: string;
@@ -43,6 +43,14 @@ const typeLabels: Record<PendingLeaveRequest["type"], string> = {
   DAY_OFF: "Day Off",
   VACATION: "Vacation",
 };
+
+const CARD_CLASS = cn(
+  "p-6",
+  "rounded-[var(--radius-curie-lg)]",
+  "bg-[var(--color-curie-surface)]",
+  "border border-[var(--color-curie-border)]",
+  "shadow-[var(--shadow-curie-soft)]",
+);
 
 export function LeaveApprovalCard({
   request,
@@ -90,7 +98,6 @@ export function LeaveApprovalCard({
 
       setDismissed(true);
 
-      // Wait for animation to complete before notifying parent
       setTimeout(() => {
         onResolved(request.id);
         router.refresh();
@@ -110,7 +117,8 @@ export function LeaveApprovalCard({
       <div
         ref={cardRef}
         style={{
-          transition: "opacity 350ms cubic-bezier(0.25, 0.1, 0.25, 1), max-height 350ms cubic-bezier(0.25, 0.1, 0.25, 1), margin 350ms cubic-bezier(0.25, 0.1, 0.25, 1), padding 350ms cubic-bezier(0.25, 0.1, 0.25, 1)",
+          transition:
+            "opacity 350ms cubic-bezier(0.25, 0.1, 0.25, 1), max-height 350ms cubic-bezier(0.25, 0.1, 0.25, 1), margin 350ms cubic-bezier(0.25, 0.1, 0.25, 1), padding 350ms cubic-bezier(0.25, 0.1, 0.25, 1)",
           opacity: dismissed ? 0 : 1,
           maxHeight: dismissed ? "0px" : "500px",
           marginBottom: dismissed ? "0px" : undefined,
@@ -118,23 +126,20 @@ export function LeaveApprovalCard({
           paddingBottom: dismissed ? "0px" : undefined,
           overflow: "hidden",
         }}
-        className="rounded-[10px] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]"
+        className={CARD_CLASS}
       >
         {/* Header: Avatar + Name + Type */}
         <div className="mb-4 flex items-center gap-3">
-          <Avatar className="size-10">
-            {employee?.avatarUrl && (
-              <AvatarImage src={employee.avatarUrl} alt={fullName} />
-            )}
-            <AvatarFallback className="bg-[#007AFF]/10 text-[13px] font-semibold text-[#007AFF]">
-              {getInitials(fullName)}
-            </AvatarFallback>
-          </Avatar>
+          <Avatar
+            name={fullName}
+            size="md"
+            imageSrc={employee?.avatarUrl ?? undefined}
+          />
           <div className="flex-1">
-            <p className="text-[15px] font-medium text-[#1D1D1F]">
+            <p className="text-[14px] font-medium text-[var(--color-curie-fg)]">
               {fullName}
             </p>
-            <p className="text-[13px] text-[#8E8E93]">
+            <p className="text-[12px] text-[var(--color-curie-fg-secondary)]">
               {typeLabels[request.type]}
             </p>
           </div>
@@ -143,34 +148,36 @@ export function LeaveApprovalCard({
 
         {/* Details */}
         <div className="mb-4 space-y-1.5">
-          <p className="text-[15px] text-[#1D1D1F]">
+          <p className="text-[14px] text-[var(--color-curie-fg)]">
             {formatDateUTC(startDate)} — {formatDateUTC(endDate)}
           </p>
-          <p className="text-[13px] text-[#8E8E93]">
+          <p className="text-[12px] text-[var(--color-curie-fg-muted)]">
             {duration} working day{duration !== 1 ? "s" : ""} · Submitted{" "}
             {formatDateUTC(new Date(request.createdAt))}
           </p>
           {request.reason && (
-            <p className="text-[14px] text-[#3C3C43]">{request.reason}</p>
+            <p className="text-[13px] text-[var(--color-curie-fg-secondary)]">
+              {request.reason}
+            </p>
           )}
         </div>
 
         {/* Action buttons */}
         <div className="flex gap-3">
-          <button
-            type="button"
+          <Btn
+            variant="secondary"
+            size="sm"
             onClick={() => setConfirmAction("reject")}
-            className="h-[44px] flex-1 rounded-[8px] bg-[#FF3B30] text-[17px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98]"
           >
             Reject
-          </button>
-          <button
-            type="button"
+          </Btn>
+          <Btn
+            variant="primary"
+            size="sm"
             onClick={() => setConfirmAction("approve")}
-            className="h-[44px] flex-1 rounded-[8px] bg-[#34C759] text-[17px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98]"
           >
             Approve
-          </button>
+          </Btn>
         </div>
       </div>
 
@@ -196,31 +203,27 @@ export function LeaveApprovalCard({
               {duration} working day{duration !== 1 ? "s" : ""}?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex-col gap-2 sm:flex-row sm:gap-3">
-            <button
-              type="button"
+          <DialogFooter className="flex-col gap-2 sm:flex-row sm:gap-3 sm:justify-end">
+            <Btn
+              variant="secondary"
+              size="sm"
               onClick={() => setConfirmAction(null)}
               disabled={loading}
-              className="h-[44px] w-full rounded-[8px] px-4 text-[15px] font-semibold text-[#007AFF] transition-colors duration-150 hover:bg-[#E5E5EA] sm:h-[36px] sm:w-auto"
             >
               Cancel
-            </button>
-            <button
-              type="button"
+            </Btn>
+            <Btn
+              variant="primary"
+              size="sm"
               onClick={handleConfirm}
               disabled={loading}
-              className={`h-[44px] w-full rounded-[8px] px-4 text-[15px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98] disabled:opacity-60 sm:h-[36px] sm:w-auto ${
-                confirmAction === "approve"
-                  ? "bg-[#34C759]"
-                  : "bg-[#FF3B30]"
-              }`}
             >
               {loading
                 ? "Processing..."
                 : confirmAction === "approve"
                   ? "Approve"
                   : "Reject"}
-            </button>
+            </Btn>
           </DialogFooter>
         </DialogContent>
       </Dialog>

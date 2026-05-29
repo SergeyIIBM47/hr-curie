@@ -2,6 +2,8 @@ import Link from "next/link";
 import { requireAuth } from "@/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
 import { LeaveHistoryTable } from "@/components/leave/leave-history-table";
+import { Btn, IPlus } from "@/components/curie";
+import { cn } from "@/lib/utils";
 
 export default async function LeavePage() {
   const session = await requireAuth();
@@ -29,29 +31,33 @@ export default async function LeavePage() {
   }));
 
   return (
-    <div>
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-[28px] font-bold text-[#1D1D1F]">Leave</h1>
-          <p className="text-[15px] text-[#8E8E93]">
+          <h1
+            className={cn(
+              "font-[family-name:var(--font-curie-display)]",
+              "text-[28px] font-medium leading-tight tracking-[-0.015em]",
+              "text-[var(--color-curie-fg)]",
+            )}
+          >
+            Leave
+          </h1>
+          <p className="text-[15px] text-[var(--color-curie-fg-secondary)]">
             {leaveRequests.length}{" "}
             {leaveRequests.length === 1 ? "request" : "requests"}
           </p>
         </div>
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
           {isAdmin && (
-            <Link
-              href="/leave/manage"
-              className="inline-flex h-[44px] items-center justify-center rounded-[8px] border border-[#007AFF] px-5 text-[17px] font-semibold text-[#007AFF] transition-all duration-150 hover:bg-[#007AFF]/5 active:scale-[0.98]"
-            >
-              Manage Requests
+            <Link href="/leave/manage">
+              <Btn variant="secondary">Manage Requests</Btn>
             </Link>
           )}
-          <Link
-            href="/leave/request"
-            className="inline-flex h-[44px] items-center justify-center rounded-[8px] bg-[#007AFF] px-5 text-[17px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98]"
-          >
-            Request Leave
+          <Link href="/leave/request">
+            <Btn variant="primary" icon={IPlus}>
+              Request Leave
+            </Btn>
           </Link>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { requireAuth } from "@/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
 import { EmployeeForm } from "@/components/employees/employee-form";
+import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
 interface EditEmployeePageProps {
@@ -72,8 +73,14 @@ export default async function EditEmployeePage({
   };
 
   return (
-    <div>
-      <h1 className="mb-6 text-[28px] font-bold text-[#1D1D1F]">
+    <div className="flex flex-col gap-6">
+      <h1
+        className={cn(
+          "font-[family-name:var(--font-curie-display)]",
+          "text-[28px] font-medium leading-tight tracking-[-0.015em]",
+          "text-[var(--color-curie-fg)]",
+        )}
+      >
         Edit Employee
       </h1>
       <EmployeeForm

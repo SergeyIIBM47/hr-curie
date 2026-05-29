@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Btn } from "@/components/curie";
 
 interface RoleToggleProps {
   employeeId: string;
@@ -76,7 +77,7 @@ export function RoleToggle({
           onCheckedChange={handleToggleClick}
           disabled={loading}
         />
-        <span className="text-[15px] font-medium text-[#1D1D1F]">
+        <span className="text-[14px] font-medium text-[var(--color-curie-fg)]">
           Admin Access
         </span>
       </div>
@@ -91,23 +92,23 @@ export function RoleToggle({
               <strong>{pendingRole.toLowerCase()}</strong>.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex-col gap-2 sm:flex-row sm:gap-3">
-            <button
-              type="button"
+          <DialogFooter className="flex-col gap-2 sm:flex-row sm:gap-3 sm:justify-end">
+            <Btn
+              variant="secondary"
+              size="sm"
               onClick={() => setConfirmOpen(false)}
               disabled={loading}
-              className="h-[44px] w-full rounded-[8px] px-4 text-[15px] font-semibold text-[#007AFF] transition-colors duration-150 hover:bg-[#E5E5EA] sm:h-[36px] sm:w-auto"
             >
               Cancel
-            </button>
-            <button
-              type="button"
+            </Btn>
+            <Btn
+              variant="primary"
+              size="sm"
               onClick={confirmRoleChange}
               disabled={loading}
-              className="h-[44px] w-full rounded-[8px] bg-[#007AFF] px-4 text-[15px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98] disabled:opacity-60 sm:h-[36px] sm:w-auto"
             >
               {loading ? "Updating..." : "Confirm"}
-            </button>
+            </Btn>
           </DialogFooter>
         </DialogContent>
       </Dialog>

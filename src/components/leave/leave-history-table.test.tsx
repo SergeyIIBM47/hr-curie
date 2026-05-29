@@ -106,7 +106,9 @@ describe("LeaveHistoryTable", () => {
       const mobileContainer = document.querySelector(".md\\:hidden");
       expect(mobileContainer).toBeInTheDocument();
       // Each request has a mobile card
-      const cards = mobileContainer?.querySelectorAll(".rounded-\\[10px\\]");
+      const cards = mobileContainer?.querySelectorAll(
+        ".rounded-\\[var\\(--radius-curie-lg\\)\\]",
+      );
       expect(cards).toHaveLength(3);
     });
 

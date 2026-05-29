@@ -19,12 +19,25 @@ beforeEach(() => {
   });
 });
 
+function mockRateLimitOk() {
+  return {
+    ok: true,
+    status: 200,
+    json: () => Promise.resolve({ ok: true }),
+  };
+}
+
+function mockCsrfOk(csrfToken = "test-csrf") {
+  return {
+    ok: true,
+    json: () => Promise.resolve({ csrfToken }),
+  };
+}
+
 function mockCsrfAndCredentials(credentialsResponse: Record<string, unknown>) {
   fetchMock
-    .mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve({ csrfToken: "test-csrf" }),
-    })
+    .mockResolvedValueOnce(mockRateLimitOk())
+    .mockResolvedValueOnce(mockCsrfOk())
     .mockResolvedValueOnce(credentialsResponse);
 }
 
@@ -98,12 +111,15 @@ describe("LoginForm", () => {
       await user.click(screen.getByRole("button", { name: /sign in/i }));
 
       await waitFor(() => {
-        expect(fetchMock).toHaveBeenCalledTimes(2);
+        expect(fetchMock).toHaveBeenCalledTimes(3);
       });
 
-      expect(fetchMock).toHaveBeenNthCalledWith(1, "/api/auth/csrf");
+      const [rateLimitUrl] = fetchMock.mock.calls[0];
+      expect(rateLimitUrl).toBe("/api/auth/rate-limit");
 
-      const [url, options] = fetchMock.mock.calls[1];
+      expect(fetchMock).toHaveBeenNthCalledWith(2, "/api/auth/csrf");
+
+      const [url, options] = fetchMock.mock.calls[2];
       expect(url).toBe("/api/auth/callback/credentials");
       expect(options.method).toBe("POST");
 
@@ -141,10 +157,8 @@ describe("LoginForm", () => {
 
       let resolveCredentials!: (value: unknown) => void;
       fetchMock
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve({ csrfToken: "test-csrf" }),
-        })
+        .mockResolvedValueOnce(mockRateLimitOk())
+        .mockResolvedValueOnce(mockCsrfOk())
         .mockImplementationOnce(
           () =>
             new Promise((resolve) => {
@@ -224,7 +238,9 @@ describe("LoginForm", () => {
       await user.click(screen.getByRole("button", { name: /sign in/i }));
 
       await waitFor(() => {
-        expect(screen.getByText(/server error \(500\)/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/invalid email or password/i),
+        ).toBeInTheDocument();
       });
     });
 
@@ -250,15 +266,15 @@ describe("LoginForm", () => {
       await user.click(screen.getByRole("button", { name: /sign in/i }));
 
       await waitFor(() => {
-        expect(screen.getByText(/server error \(500\)/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/invalid email or password/i),
+        ).toBeInTheDocument();
       });
 
-      // Second attempt: queue new fetch mocks
+      // Second attempt: queue new fetch mocks (rate-limit + csrf + credentials)
       fetchMock
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve({ csrfToken: "test-csrf-2" }),
-        })
+        .mockResolvedValueOnce(mockRateLimitOk())
+        .mockResolvedValueOnce(mockCsrfOk("test-csrf-2"))
         .mockResolvedValueOnce({
           status: 0,
           type: "opaqueredirect",
@@ -269,7 +285,9 @@ describe("LoginForm", () => {
       await user.click(screen.getByRole("button", { name: /sign in/i }));
 
       await waitFor(() => {
-        expect(screen.queryByText(/server error/i)).not.toBeInTheDocument();
+        expect(
+          screen.queryByText(/invalid email or password/i),
+        ).not.toBeInTheDocument();
       });
     });
   });

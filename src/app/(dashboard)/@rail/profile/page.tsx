@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { requireAuth } from "@/lib/auth-guard";
 import { cn } from "@/lib/utils";
-import { TodayScheduleList, type ScheduleItem } from "@/components/curie";
+import { type ScheduleItem } from "@/components/curie";
+import { TodayScheduleList } from "@/components/curie/today-schedule-list";
 import { fetchEmployeeRailData } from "../../page.queries";
 
 function getRailToday(): Date {

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { formatDateUTC } from "@/lib/utils";
+import { formatDateUTC, cn } from "@/lib/utils";
 import { LeaveStatusBadge } from "./leave-status-badge";
 import {
   Table,
@@ -11,6 +11,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table";
+import { Btn, IPlus } from "@/components/curie";
 import { countWorkingDays } from "./leave-request-form";
 
 interface LeaveHistoryItem {
@@ -33,6 +34,20 @@ const typeLabels: Record<LeaveHistoryItem["type"], string> = {
   VACATION: "Vacation",
 };
 
+const HEADER_CLASS = cn(
+  "h-10 px-4",
+  "text-[11px] font-medium uppercase tracking-[0.06em]",
+  "font-[family-name:var(--font-curie-mono)]",
+  "text-[var(--color-curie-fg-muted)]",
+);
+
+const CARD_CLASS = cn(
+  "rounded-[var(--radius-curie-lg)]",
+  "border border-[var(--color-curie-border)]",
+  "bg-[var(--color-curie-surface)]",
+  "shadow-[var(--shadow-curie-soft)]",
+);
+
 function formatDateRange(start: string, end: string): string {
   const s = new Date(start);
   const e = new Date(end);
@@ -51,18 +66,22 @@ function formatSubmitted(dateStr: string): string {
 export function LeaveHistoryTable({ requests }: LeaveHistoryTableProps) {
   if (requests.length === 0) {
     return (
-      <div className="rounded-[10px] bg-white p-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]">
-        <p className="mb-1 text-[17px] font-medium text-[#1D1D1F]">
+      <div className={cn(CARD_CLASS, "p-8 text-center")}>
+        <p
+          className={cn(
+            "mb-1 font-[family-name:var(--font-curie-display)]",
+            "text-[20px] font-medium text-[var(--color-curie-fg)]",
+          )}
+        >
           No leave requests yet
         </p>
-        <p className="mb-4 text-[15px] text-[#8E8E93]">
+        <p className="mb-6 text-[14px] text-[var(--color-curie-fg-secondary)]">
           Submit your first leave request to get started.
         </p>
-        <Link
-          href="/leave/request"
-          className="inline-flex h-[44px] w-full items-center justify-center rounded-[8px] bg-[#007AFF] px-5 text-[17px] font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98] sm:w-auto"
-        >
-          Request Leave
+        <Link href="/leave/request" className="inline-block">
+          <Btn variant="primary" icon={IPlus}>
+            Request Leave
+          </Btn>
         </Link>
       </div>
     );
@@ -71,49 +90,40 @@ export function LeaveHistoryTable({ requests }: LeaveHistoryTableProps) {
   return (
     <>
       {/* Desktop table */}
-      <div className="hidden rounded-[10px] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)] md:block">
+      <div className={cn("hidden overflow-hidden md:block", CARD_CLASS)}>
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="h-10 px-4 text-[13px] font-semibold uppercase tracking-wider text-[#8E8E93]">
-                Type
-              </TableHead>
-              <TableHead className="h-10 px-4 text-[13px] font-semibold uppercase tracking-wider text-[#8E8E93]">
-                Dates
-              </TableHead>
-              <TableHead className="h-10 px-4 text-[13px] font-semibold uppercase tracking-wider text-[#8E8E93]">
-                Duration
-              </TableHead>
-              <TableHead className="h-10 px-4 text-[13px] font-semibold uppercase tracking-wider text-[#8E8E93]">
-                Status
-              </TableHead>
-              <TableHead className="h-10 px-4 text-[13px] font-semibold uppercase tracking-wider text-[#8E8E93]">
-                Reason
-              </TableHead>
-              <TableHead className="h-10 px-4 text-[13px] font-semibold uppercase tracking-wider text-[#8E8E93]">
-                Submitted
-              </TableHead>
+              <TableHead className={HEADER_CLASS}>Type</TableHead>
+              <TableHead className={HEADER_CLASS}>Dates</TableHead>
+              <TableHead className={HEADER_CLASS}>Duration</TableHead>
+              <TableHead className={HEADER_CLASS}>Status</TableHead>
+              <TableHead className={HEADER_CLASS}>Reason</TableHead>
+              <TableHead className={HEADER_CLASS}>Submitted</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {requests.map((req) => (
-              <TableRow key={req.id} className="h-[52px] hover:bg-[#F2F2F7]">
-                <TableCell className="px-4 text-[15px] font-medium text-[#1D1D1F]">
+              <TableRow
+                key={req.id}
+                className="h-[56px] hover:bg-[var(--color-curie-surface-sunken)]"
+              >
+                <TableCell className="px-4 text-[14px] font-medium text-[var(--color-curie-fg)]">
                   {typeLabels[req.type]}
                 </TableCell>
-                <TableCell className="px-4 text-[15px] text-[#1D1D1F]">
+                <TableCell className="px-4 text-[14px] text-[var(--color-curie-fg)]">
                   {formatDateRange(req.startDate, req.endDate)}
                 </TableCell>
-                <TableCell className="px-4 text-[15px] text-[#8E8E93]">
+                <TableCell className="px-4 text-[14px] text-[var(--color-curie-fg-secondary)]">
                   {getDuration(req.startDate, req.endDate)}
                 </TableCell>
                 <TableCell className="px-4">
                   <LeaveStatusBadge status={req.status} />
                 </TableCell>
-                <TableCell className="max-w-[200px] truncate px-4 text-[15px] text-[#8E8E93]">
+                <TableCell className="max-w-[200px] truncate px-4 text-[14px] text-[var(--color-curie-fg-secondary)]">
                   {req.reason ?? "—"}
                 </TableCell>
-                <TableCell className="px-4 text-[15px] text-[#8E8E93]">
+                <TableCell className="px-4 text-[14px] text-[var(--color-curie-fg-secondary)]">
                   {formatSubmitted(req.createdAt)}
                 </TableCell>
               </TableRow>
@@ -125,25 +135,24 @@ export function LeaveHistoryTable({ requests }: LeaveHistoryTableProps) {
       {/* Mobile cards */}
       <div className="flex flex-col gap-3 md:hidden">
         {requests.map((req) => (
-          <div
-            key={req.id}
-            className="rounded-[10px] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]"
-          >
+          <div key={req.id} className={cn(CARD_CLASS, "p-4")}>
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-[15px] font-medium text-[#1D1D1F]">
+              <span className="text-[14px] font-medium text-[var(--color-curie-fg)]">
                 {typeLabels[req.type]}
               </span>
               <LeaveStatusBadge status={req.status} />
             </div>
-            <p className="text-[13px] text-[#8E8E93]">
+            <p className="text-[13px] text-[var(--color-curie-fg-secondary)]">
               {formatDateRange(req.startDate, req.endDate)}
             </p>
-            <p className="text-[13px] text-[#8E8E93]">
+            <p className="text-[13px] text-[var(--color-curie-fg-muted)]">
               {getDuration(req.startDate, req.endDate)} · Submitted{" "}
               {formatSubmitted(req.createdAt)}
             </p>
             {req.reason && (
-              <p className="mt-2 text-[13px] text-[#3C3C43]">{req.reason}</p>
+              <p className="mt-2 text-[13px] text-[var(--color-curie-fg-secondary)]">
+                {req.reason}
+              </p>
             )}
           </div>
         ))}

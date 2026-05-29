@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
+import { ISearch } from "@/components/curie";
 
 export function EmployeeSearch() {
   const router = useRouter();
@@ -23,14 +23,17 @@ export function EmployeeSearch() {
 
   return (
     <div role="search" className="relative">
-      <Search className="absolute left-3 top-1/2 size-[18px] -translate-y-1/2 text-[#8E8E93]" aria-hidden="true" />
+      <ISearch
+        className="pointer-events-none absolute left-3 top-1/2 size-[18px] -translate-y-1/2 text-[var(--color-curie-fg-muted)]"
+        aria-hidden="true"
+      />
       <input
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search employees..."
         aria-label="Search employees"
-        className="h-[44px] w-full rounded-[8px] bg-[rgba(120,120,128,0.12)] pl-10 pr-3 text-[17px] text-[#1D1D1F] outline-none placeholder:text-[rgba(60,60,67,0.3)] focus:ring-2 focus:ring-[#007AFF]/40"
+        className="h-10 w-full rounded-[var(--radius-curie-sm)] border border-[var(--color-curie-border)] bg-[var(--color-curie-surface)] pl-10 pr-3 text-[14px] text-[var(--color-curie-fg)] outline-none placeholder:text-[var(--color-curie-fg-muted)] focus:border-[var(--color-curie-brand)] focus:ring-2 focus:ring-[var(--color-curie-brand-soft)]"
       />
     </div>
   );

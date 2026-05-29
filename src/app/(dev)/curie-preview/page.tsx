@@ -29,17 +29,17 @@ import {
   PageGreeting,
   KpiCard,
   WorkforceCompositionDonut,
-  TimeOffThisWeekCard,
-  OnboardingTrackerCard,
-  NoticeBoardCard,
   MiniCalendar,
-  TodayScheduleList,
-  ComingUpList,
   type WorkforceCount,
   type NoticeView,
   type ScheduleItem,
   type OnboardingTrackerData,
 } from "@/components/curie";
+import { TimeOffThisWeekCard } from "@/components/curie/time-off-this-week-card";
+import { OnboardingTrackerCard } from "@/components/curie/onboarding-tracker-card";
+import { NoticeBoardCard } from "@/components/curie/notice-board-card";
+import { TodayScheduleList } from "@/components/curie/today-schedule-list";
+import { ComingUpList } from "@/components/curie/coming-up-list";
 import type { ComingUpEmployee } from "@/lib/coming-up";
 
 const SAMPLE_NAMES = [
