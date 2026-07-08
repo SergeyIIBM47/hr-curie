@@ -17,7 +17,7 @@ the codebase, git history, and test suite.
 | 44 | Migrate /calendar + /settings | ✅ DONE | commit `a3da28f`; spot-checked, Curie tokens only |
 | 45 | Cleanup legacy Apple tokens + glass utilities | ✅ DONE | commit `5039be1`; globals.css 444→234 lines, docs swapped, next-themes kept for Phase 9 |
 | 46 | Tests + a11y + responsive + CI gate | ✅ DONE | 2026-07-09: coverage ≥80% all metrics, a11y/responsive/reduced-motion specs, token gate, amplify.yml gates |
-| 47 | Visual baseline + release tag | ❌ MISSING | no baselines, no `redesign-v1` tag, version still 0.1.0 |
+| 47 | Visual baseline + release tag | ✅ DONE | 2026-07-09: `docs/redesign-baseline/` (9 PNGs + README), version 0.2.0, `redesign-v1` tag |
 
 Good news from verification: **zero** references to Apple tokens or `.glass` utilities
 remain in `src/` application code — step 45 is pure deletion plus docs, low risk.
@@ -84,13 +84,22 @@ remain in `src/` application code — step 45 is pure deletion plus docs, low ri
 > (`retries: 1` now set). chromium 72/72 and mobile-chrome 68/68 are
 > consistently green.
 
-### Step 47 — baseline + release (≈45 min)
-- [ ] Run `npx playwright test --project=chromium` to generate the screenshot set (overview admin/employee at 1440 + the 6 route screenshots from responsive spec)
-- [ ] Copy into `docs/redesign-baseline/` per spec §2, write `docs/redesign-baseline/README.md` with the baseline→mockup mapping table
-- [ ] Capture `design/overview-mockup.html` at 1440×900 headless → `docs/redesign-baseline/_mockup-reference.png`
-- [ ] Bump `package.json` version 0.1.0 → 0.2.0
-- [ ] Update `CLAUDE.md` project overview: remove "blueprint-stage" language, link `docs/design-system.md` and `docs/redesign-baseline/README.md`
-- [ ] `git tag -a redesign-v1 -m "HR Curie redesign — Cobalt/Frost + Fraunces/General Sans"` and push tag
+### Step 47 — baseline + release — DONE 2026-07-09
+- [x] Chromium suite run with `OVERVIEW_FREEZE_DATE=2026-05-26T09:35:00.000Z`
+      (92/92 green) to regenerate the screenshot set; e2e-generated
+      `create-*@company.com` rows purged first so the baseline shows the
+      clean seed (6 employees, 4-slice donut)
+- [x] `docs/redesign-baseline/`: overview-admin/employee + 6 route PNGs +
+      `login.png`, `_mockup-reference.png` (mockup at 1440×900), README with
+      the baseline→mockup mapping, capture SHA, intentional deltas, and
+      regeneration steps
+- [x] `package.json` version 0.1.0 → 0.2.0
+- [x] `CLAUDE.md` Project Overview de-blueprinted; links `docs/design-system.md`
+      (canonical design source) and `docs/redesign-baseline/README.md`
+      (visual regression baseline)
+- [x] `git tag -a redesign-v1` — NOTE: tag push blocked by the known 403
+      (machine authenticated as `svolokh-tech`, no write access to
+      `SergeyIIBM47/hr-curie`); push once access is fixed
 
 ### Suggested order
 41-closeout → 45 → 46 → 47 (46's token gate needs 45's cleanup; 47's baselines need 46's specs).

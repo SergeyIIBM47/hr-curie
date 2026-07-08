@@ -2,12 +2,58 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+
+# Coding Rules
+
+Shared engineering guidelines applied across HRZN AI workflows (task-flow, deploy, pr-review, etc). Distilled from Karpathy's LLM-coding observations plus team conventions.
+
+These bias toward caution. Use judgment on trivial tweaks; apply rigorously on anything non-trivial.
+
+## 1. Think Before Coding
+
+State assumptions explicitly. If uncertain, ask rather than guess. Present multiple interpretations when ambiguity exists. Push back when a simpler approach exists. Stop when confused — name what's unclear instead of charging ahead.
+
+## 2. Simplicity First
+
+Write the minimum code that solves the problem. Nothing speculative.
+
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+
+Test: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+
+## 3. Surgical Changes
+
+Touch only what you must. Clean up only your own mess.
+
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it — don't delete it.
+- Remove imports/variables/functions that YOUR changes made unused. Leave pre-existing dead code unless asked.
+
+Test: Every changed line should trace directly to the user's request (or the Jira task).
+
+## 4. Goal-Driven Execution
+
+Transform tasks into verifiable goals before writing code:
+
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step work, write a brief `step → verify` plan. Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+
+
 ## Project Overview
 
-HR CRM system for employee management, leave requests, and meeting scheduling. This is a **blueprint-stage project** — the source code has not been implemented yet. All architecture and specifications are defined in two planning documents:
+HR CRM system for employee management, leave requests, and meeting scheduling. The app is implemented (redesign-v1, version 0.2.0). Key references:
 
-- `hr-system-amplify-blueprint.md` — complete technical blueprint (architecture, Prisma schema, API routes, auth, deployment)
-- `docs/design-system.md` — Cobalt/Frost design system (colors, typography, spacing, components)
+- `docs/design-system.md` — canonical Cobalt/Frost design system (colors, typography, spacing, components); the implementation source of truth for all styling
+- `docs/redesign-baseline/README.md` — visual regression baseline (screenshots per route + mockup mapping); diff against it in PRs that touch styling or layout
+- `hr-system-amplify-blueprint.md` — original technical blueprint (architecture, Prisma schema, API routes, auth, deployment); historical reference
 
 ## Tech Stack
 
