@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { signIn } from "next-auth/react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { loginSchema } from "@/lib/validations/auth";
 import { Btn } from "@/components/curie";
@@ -10,12 +11,6 @@ import { cn } from "@/lib/utils";
 import type { z } from "zod";
 
 type LoginValues = z.infer<typeof loginSchema>;
-
-async function getCsrfToken(): Promise<string> {
-  const res = await fetch("/api/auth/csrf");
-  const data = await res.json();
-  return data.csrfToken;
-}
 
 const FIELD_CLASS = cn(
   "h-11 w-full rounded-[var(--radius-curie-sm)] px-3.5",
@@ -55,36 +50,18 @@ export function LoginForm() {
         return;
       }
 
-      const csrfToken = await getCsrfToken();
-
-      const res = await fetch("/api/auth/callback/credentials", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          csrfToken,
-          email: data.email,
-          password: data.password,
-          callbackUrl: "/",
-        }),
-        redirect: "manual",
+      const res = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
       });
 
-      if (res.status === 0 || res.type === "opaqueredirect") {
-        window.location.assign("/");
+      if (res?.error) {
+        setError("Invalid email or password");
         return;
       }
 
-      if (res.ok) {
-        const url = new URL(res.url);
-        if (url.pathname.includes("/error") || url.searchParams.has("error")) {
-          setError("Invalid email or password");
-          return;
-        }
-        window.location.assign("/");
-        return;
-      }
-
-      setError("Invalid email or password");
+      window.location.assign("/");
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "An unexpected error occurred",

@@ -1,44 +1,55 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { signIn } from "next-auth/react";
 import { LoginForm } from "./login-form";
 
+vi.mock("next-auth/react", () => ({
+  signIn: vi.fn(),
+}));
+
+const signInMock = vi.mocked(signIn);
 const fetchMock = vi.fn();
+const locationAssign = vi.fn();
 
 beforeEach(() => {
-  vi.restoreAllMocks();
   fetchMock.mockReset();
+  signInMock.mockReset();
+  locationAssign.mockReset();
   global.fetch = fetchMock;
-  vi.spyOn(console, "log").mockImplementation(() => {});
   vi.spyOn(console, "error").mockImplementation(() => {});
 
-  // Prevent jsdom "not implemented" error on window.location.href assignment
+  // Prevent jsdom "not implemented" error on navigation
   Object.defineProperty(window, "location", {
     writable: true,
-    value: { href: "http://localhost:3000" },
+    value: { href: "http://localhost:3000", assign: locationAssign },
   });
 });
 
-function mockRateLimitOk() {
+function mockRateLimitCheck(status: number) {
+  fetchMock.mockResolvedValueOnce({
+    ok: status < 400,
+    status,
+    json: () => Promise.resolve(status === 429 ? { error: "rate limited" } : { ok: true }),
+  });
+}
+
+function signInResult(overrides: Partial<Awaited<ReturnType<typeof signIn>>> = {}) {
   return {
-    ok: true,
+    error: undefined,
+    code: undefined,
     status: 200,
-    json: () => Promise.resolve({ ok: true }),
-  };
-}
-
-function mockCsrfOk(csrfToken = "test-csrf") {
-  return {
     ok: true,
-    json: () => Promise.resolve({ csrfToken }),
+    url: "http://localhost:3000/",
+    ...overrides,
   };
 }
 
-function mockCsrfAndCredentials(credentialsResponse: Record<string, unknown>) {
-  fetchMock
-    .mockResolvedValueOnce(mockRateLimitOk())
-    .mockResolvedValueOnce(mockCsrfOk())
-    .mockResolvedValueOnce(credentialsResponse);
+async function fillAndSubmit(email: string, password: string) {
+  const user = userEvent.setup();
+  await user.type(screen.getByPlaceholderText("Email"), email);
+  await user.type(screen.getByPlaceholderText("Password"), password);
+  await user.click(screen.getByRole("button", { name: /sign in/i }));
 }
 
 describe("LoginForm", () => {
@@ -72,62 +83,41 @@ describe("LoginForm", () => {
   });
 
   describe("validation", () => {
-    it("does not call fetch when form is submitted empty", async () => {
+    it("does not submit when form is empty", async () => {
       const user = userEvent.setup();
       render(<LoginForm />);
 
       await user.click(screen.getByRole("button", { name: /sign in/i }));
 
       expect(fetchMock).not.toHaveBeenCalled();
+      expect(signInMock).not.toHaveBeenCalled();
     });
 
-    it("does not call fetch with invalid email", async () => {
-      const user = userEvent.setup();
+    it("does not submit with invalid email", async () => {
       render(<LoginForm />);
-
-      await user.type(screen.getByPlaceholderText("Email"), "not-an-email");
-      await user.type(screen.getByPlaceholderText("Password"), "password123");
-      await user.click(screen.getByRole("button", { name: /sign in/i }));
+      await fillAndSubmit("not-an-email", "password123");
 
       expect(fetchMock).not.toHaveBeenCalled();
+      expect(signInMock).not.toHaveBeenCalled();
     });
 
-    it("calls fetch with correct endpoint and body for valid data", async () => {
-      const user = userEvent.setup();
-      mockCsrfAndCredentials({
-        status: 0,
-        type: "opaqueredirect",
-        ok: false,
-        headers: new Headers(),
-      });
+    it("signs in with normalized email for valid data", async () => {
+      mockRateLimitCheck(200);
+      signInMock.mockResolvedValue(signInResult());
 
       render(<LoginForm />);
-
-      await user.type(
-        screen.getByPlaceholderText("Email"),
-        "test@example.com",
-      );
-      await user.type(screen.getByPlaceholderText("Password"), "password123");
-      await user.click(screen.getByRole("button", { name: /sign in/i }));
+      await fillAndSubmit("Sofia@Company.COM", "password123");
 
       await waitFor(() => {
-        expect(fetchMock).toHaveBeenCalledTimes(3);
+        expect(signInMock).toHaveBeenCalledWith("credentials", {
+          email: "sofia@company.com",
+          password: "password123",
+          redirect: false,
+        });
       });
 
       const [rateLimitUrl] = fetchMock.mock.calls[0];
       expect(rateLimitUrl).toBe("/api/auth/rate-limit");
-
-      expect(fetchMock).toHaveBeenNthCalledWith(2, "/api/auth/csrf");
-
-      const [url, options] = fetchMock.mock.calls[2];
-      expect(url).toBe("/api/auth/callback/credentials");
-      expect(options.method).toBe("POST");
-
-      const body = new URLSearchParams(String(options.body));
-      expect(body.get("email")).toBe("test@example.com");
-      expect(body.get("password")).toBe("password123");
-      expect(body.get("csrfToken")).toBe("test-csrf");
-      expect(body.get("callbackUrl")).toBe("/");
     });
   });
 
@@ -153,61 +143,37 @@ describe("LoginForm", () => {
 
   describe("loading state", () => {
     it("disables button and hides Sign In text while submitting", async () => {
-      const user = userEvent.setup();
-
-      let resolveCredentials!: (value: unknown) => void;
-      fetchMock
-        .mockResolvedValueOnce(mockRateLimitOk())
-        .mockResolvedValueOnce(mockCsrfOk())
-        .mockImplementationOnce(
-          () =>
-            new Promise((resolve) => {
-              resolveCredentials = resolve;
-            }),
-        );
+      mockRateLimitCheck(200);
+      let resolveSignIn!: (value: unknown) => void;
+      signInMock.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveSignIn = resolve;
+          }) as never,
+      );
 
       render(<LoginForm />);
+      await fillAndSubmit("test@example.com", "password123");
 
-      await user.type(
-        screen.getByPlaceholderText("Email"),
-        "test@example.com",
-      );
-      await user.type(screen.getByPlaceholderText("Password"), "password123");
-
-      const submitButton = screen.getByRole("button", { name: /sign in/i });
-      await user.click(submitButton);
-
+      const submitButton = screen
+        .getAllByRole("button")
+        .find((btn) => btn.getAttribute("type") === "submit")!;
       await waitFor(() => {
         expect(submitButton).toBeDisabled();
       });
       expect(screen.queryByText("Sign In")).not.toBeInTheDocument();
 
-      resolveCredentials({
-        status: 0,
-        type: "opaqueredirect",
-        ok: false,
-        headers: new Headers(),
-      });
+      resolveSignIn(signInResult());
     });
 
-    it("re-enables button after error response", async () => {
-      const user = userEvent.setup();
-      mockCsrfAndCredentials({
-        ok: false,
-        status: 500,
-        type: "default",
-        text: () => Promise.resolve("Error"),
-        headers: new Headers(),
-      });
+    it("re-enables button after a failed sign-in", async () => {
+      mockRateLimitCheck(200);
+      signInMock.mockResolvedValue(
+        signInResult({ error: "CredentialsSignin", ok: false, status: 401, url: null }),
+      );
 
       render(<LoginForm />);
-
-      await user.type(
-        screen.getByPlaceholderText("Email"),
-        "test@example.com",
-      );
-      await user.type(screen.getByPlaceholderText("Password"), "password123");
-      await user.click(screen.getByRole("button", { name: /sign in/i }));
+      await fillAndSubmit("test@example.com", "password123");
 
       await waitFor(() => {
         expect(
@@ -218,70 +184,63 @@ describe("LoginForm", () => {
   });
 
   describe("error display", () => {
-    it("displays error message when fetch returns error status", async () => {
-      const user = userEvent.setup();
-      mockCsrfAndCredentials({
-        ok: false,
-        status: 500,
-        type: "default",
-        text: () => Promise.resolve("Internal error"),
-        headers: new Headers(),
-      });
+    it("shows an error when credentials are rejected", async () => {
+      mockRateLimitCheck(200);
+      signInMock.mockResolvedValue(
+        signInResult({ error: "CredentialsSignin", ok: false, status: 401, url: null }),
+      );
 
       render(<LoginForm />);
+      await fillAndSubmit("sofia@company.com", "wrong-pass");
 
-      await user.type(
-        screen.getByPlaceholderText("Email"),
-        "test@example.com",
-      );
-      await user.type(screen.getByPlaceholderText("Password"), "password123");
-      await user.click(screen.getByRole("button", { name: /sign in/i }));
+      expect(
+        await screen.findByText(/invalid email or password/i),
+      ).toBeInTheDocument();
+      expect(locationAssign).not.toHaveBeenCalled();
+    });
+
+    it("shows the lockout message and skips sign-in when rate limited", async () => {
+      mockRateLimitCheck(429);
+
+      render(<LoginForm />);
+      await fillAndSubmit("sofia@company.com", "password123");
+
+      expect(
+        await screen.findByText(/too many login attempts/i),
+      ).toBeInTheDocument();
+      expect(signInMock).not.toHaveBeenCalled();
+    });
+
+    it("navigates to the dashboard and shows no error on success", async () => {
+      mockRateLimitCheck(200);
+      signInMock.mockResolvedValue(signInResult());
+
+      render(<LoginForm />);
+      await fillAndSubmit("sofia@company.com", "password123");
 
       await waitFor(() => {
-        expect(
-          screen.getByText(/invalid email or password/i),
-        ).toBeInTheDocument();
+        expect(locationAssign).toHaveBeenCalledWith("/");
       });
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     });
 
     it("clears error message when retrying submission", async () => {
-      const user = userEvent.setup();
-
-      // First attempt: error
-      mockCsrfAndCredentials({
-        ok: false,
-        status: 500,
-        type: "default",
-        text: () => Promise.resolve("Error"),
-        headers: new Headers(),
-      });
+      mockRateLimitCheck(200);
+      signInMock.mockResolvedValueOnce(
+        signInResult({ error: "CredentialsSignin", ok: false, status: 401, url: null }),
+      );
 
       render(<LoginForm />);
+      await fillAndSubmit("sofia@company.com", "wrong-pass");
 
-      await user.type(
-        screen.getByPlaceholderText("Email"),
-        "test@example.com",
-      );
-      await user.type(screen.getByPlaceholderText("Password"), "password123");
-      await user.click(screen.getByRole("button", { name: /sign in/i }));
+      expect(
+        await screen.findByText(/invalid email or password/i),
+      ).toBeInTheDocument();
 
-      await waitFor(() => {
-        expect(
-          screen.getByText(/invalid email or password/i),
-        ).toBeInTheDocument();
-      });
+      mockRateLimitCheck(200);
+      signInMock.mockResolvedValueOnce(signInResult());
 
-      // Second attempt: queue new fetch mocks (rate-limit + csrf + credentials)
-      fetchMock
-        .mockResolvedValueOnce(mockRateLimitOk())
-        .mockResolvedValueOnce(mockCsrfOk("test-csrf-2"))
-        .mockResolvedValueOnce({
-          status: 0,
-          type: "opaqueredirect",
-          ok: false,
-          headers: new Headers(),
-        });
-
+      const user = userEvent.setup();
       await user.click(screen.getByRole("button", { name: /sign in/i }));
 
       await waitFor(() => {

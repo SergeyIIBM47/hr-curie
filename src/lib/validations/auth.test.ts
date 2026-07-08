@@ -40,6 +40,17 @@ describe("loginSchema", () => {
     expect(result.success).toBe(false);
   });
 
+  it("normalizes email case and surrounding whitespace", () => {
+    const result = loginSchema.safeParse({
+      email: "  Sofia@Company.COM  ",
+      password: "password123",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.email).toBe("sofia@company.com");
+    }
+  });
+
   it("strips extra fields", () => {
     const result = loginSchema.safeParse({
       email: "test@test.com",

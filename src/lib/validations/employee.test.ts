@@ -40,6 +40,17 @@ describe("createEmployeeSchema", () => {
     expect(result.success).toBe(false);
   });
 
+  it("normalizes workEmail case and whitespace", () => {
+    const result = createEmployeeSchema.safeParse({
+      ...validCreateInput,
+      workEmail: "  John@Company.COM ",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.workEmail).toBe("john@company.com");
+    }
+  });
+
   it("fails with short password (< 8 chars)", () => {
     const result = createEmployeeSchema.safeParse({
       ...validCreateInput,

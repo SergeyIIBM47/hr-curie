@@ -3,7 +3,16 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/lib/validations/auth";
+import {
+  isLoginRateLimited,
+  recordLoginFailure,
+  clearLoginFailures,
+} from "@/lib/rate-limit";
 import type { Role } from "@prisma/client";
+
+// Compared for unknown emails so response timing does not reveal whether
+// an account exists (bcrypt.compare only runs for real users otherwise).
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync("timing-equalizer", 12);
 
 declare module "next-auth" {
   interface User {
@@ -28,16 +37,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        console.log("[AUTH] authorize called with email:", (credentials as Record<string, unknown>)?.email);
-
         const parsed = loginSchema.safeParse(credentials);
-        if (!parsed.success) {
-          console.log("[AUTH] Zod validation failed:", parsed.error.flatten());
-          return null;
-        }
+        if (!parsed.success) return null;
+
+        const { email, password } = parsed.data;
+
+        if (isLoginRateLimited(email)) return null;
 
         const user = await prisma.user.findUnique({
-          where: { email: parsed.data.email },
+          where: { email },
           include: {
             employee: {
               select: { firstName: true, lastName: true, avatarUrl: true },
@@ -46,22 +54,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         });
 
         if (!user) {
-          console.log("[AUTH] User not found for email:", parsed.data.email);
+          await bcrypt.compare(password, DUMMY_PASSWORD_HASH);
+          recordLoginFailure(email);
           return null;
         }
 
-        console.log("[AUTH] User found, id:", user.id, "role:", user.role);
-
-        const valid = await bcrypt.compare(
-          parsed.data.password,
-          user.passwordHash,
-        );
+        const valid = await bcrypt.compare(password, user.passwordHash);
         if (!valid) {
-          console.log("[AUTH] Invalid password for user:", user.id);
+          recordLoginFailure(email);
           return null;
         }
 
-        console.log("[AUTH] Login successful for user:", user.id);
+        clearLoginFailures(email);
+
         return {
           id: user.id,
           email: user.email,

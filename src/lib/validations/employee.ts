@@ -35,7 +35,7 @@ const nullableUrl = z
 export const createEmployeeSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  workEmail: z.string().email("Valid email required"),
+  workEmail: z.string().trim().toLowerCase().email("Valid email required"),
   password: z.string().min(8, "Minimum 8 characters"),
   employmentTypeId: z.string().min(1, "Employment type is required"),
   dateOfBirth: z
