@@ -7,12 +7,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 HR CRM system for employee management, leave requests, and meeting scheduling. This is a **blueprint-stage project** — the source code has not been implemented yet. All architecture and specifications are defined in two planning documents:
 
 - `hr-system-amplify-blueprint.md` — complete technical blueprint (architecture, Prisma schema, API routes, auth, deployment)
-- `apple-design-system.md` — Apple HIG-aligned design system (colors, typography, spacing, components)
+- `docs/design-system.md` — Cobalt/Frost design system (colors, typography, spacing, components)
 
 ## Tech Stack
 
 - **Framework:** Next.js 14+ (App Router) with TypeScript strict mode
-- **UI:** Tailwind CSS + shadcn/ui, Apple HIG design system
+- **UI:** Tailwind CSS + shadcn/ui, Cobalt/Frost design system
 - **ORM:** Prisma 5 with PostgreSQL 15
 - **Auth:** NextAuth.js v5 (credentials provider, JWT strategy, ADMIN/EMPLOYEE roles)
 - **Validation:** Zod (shared between API routes and forms)
