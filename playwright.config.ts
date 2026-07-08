@@ -5,7 +5,10 @@ export default defineConfig({
   outputDir: "test-results",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
+  // One retry everywhere: Firefox against `next dev` intermittently starves
+  // the load event on streamed responses, failing random tests that pass on
+  // a fresh attempt.
+  retries: 1,
   workers: process.env.CI ? 1 : undefined,
   reporter: [["html", { outputFolder: "playwright-report" }]],
   use: {

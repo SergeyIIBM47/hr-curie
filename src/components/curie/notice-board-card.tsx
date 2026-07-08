@@ -142,6 +142,7 @@ export async function NoticeBoardCard({
               >
                 {isUnread ? (
                   <span
+                    role="img"
                     aria-label="Unread"
                     className={cn(
                       "mt-1.5 h-2 w-2 shrink-0 rounded-full",

@@ -254,13 +254,14 @@ describe("LeaveApprovalCard", () => {
       expect(toast.success).toHaveBeenCalled();
     });
 
-    // onResolved should not be called immediately
-    expect(onResolved).not.toHaveBeenCalled();
-
-    // After animation completes
+    // With shouldAdvanceTime, real time may already have advanced the fake
+    // clock past the 400ms exit animation — asserting "not called yet" here
+    // is a race. Only the post-animation contract is deterministic.
     vi.advanceTimersByTime(400);
 
-    expect(onResolved).toHaveBeenCalledWith("leave-1");
+    await waitFor(() => {
+      expect(onResolved).toHaveBeenCalledWith("leave-1");
+    });
 
     vi.useRealTimers();
   });

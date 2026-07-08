@@ -12,8 +12,12 @@ test.describe("Login flow", () => {
     await page.getByPlaceholder("Password").fill(ADMIN_PASSWORD);
     await page.getByRole("button", { name: "Sign In" }).click();
 
-    // Should redirect away from login
-    await page.waitForURL(/.*(?<!\/login)$/, { timeout: 15_000 });
+    // Should redirect away from login. Wait on domcontentloaded: Firefox
+    // against `next dev` can re-commit the page and starve the load event.
+    await page.waitForURL(/.*(?<!\/login)$/, {
+      timeout: 15_000,
+      waitUntil: "domcontentloaded",
+    });
     await expect(page).not.toHaveURL(/\/login/);
   });
 

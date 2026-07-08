@@ -66,7 +66,8 @@ test.describe("Phase 8.5 — overview rebuild", () => {
     expect(totalPercent).toBeLessThan(105);
 
     // 3. Mini calendar highlights today
-    const cal = page.locator('[data-curie="mini-calendar"]').first();
+    // Both rail variants (stacked + sticky) are in the DOM — pick the visible one
+    const cal = page.locator('[data-curie="mini-calendar"]:visible').first();
     await expect(cal).toBeVisible();
     const todayCell = cal.locator("[data-curie-today]").first();
     await expect(todayCell, "mini-calendar should mark today").toBeVisible();
@@ -94,12 +95,14 @@ test.describe("Phase 8.5 — overview rebuild", () => {
       "employee greeting should render",
     ).toBeVisible();
 
+    const quickActions = page.getByRole("region", { name: "Quick actions" });
     for (const label of ["Request leave", "Calendar", "My profile"]) {
-      await expect(page.getByText(label, { exact: true })).toBeVisible();
+      await expect(quickActions.getByText(label, { exact: true })).toBeVisible();
     }
 
     // Mini calendar still renders for employee via rail slot
-    const cal = page.locator('[data-curie="mini-calendar"]').first();
+    // Both rail variants (stacked + sticky) are in the DOM — pick the visible one
+    const cal = page.locator('[data-curie="mini-calendar"]:visible').first();
     await expect(cal).toBeVisible();
     const todayCell = cal.locator("[data-curie-today]").first();
     await expect(todayCell, "mini-calendar should mark today").toBeVisible();

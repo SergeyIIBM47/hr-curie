@@ -1,5 +1,8 @@
 import { test, expect } from "../fixtures/auth";
 
+// Desktop table flow — the mobile list UI is covered in employee-list.spec.ts
+test.skip(({ isMobile }) => isMobile, "desktop-only flow");
+
 test.describe("Role toggle", () => {
   test("admin toggles employee role", async ({ adminPage: page }) => {
     // Navigate to the Test Employee profile

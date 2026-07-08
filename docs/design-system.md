@@ -27,7 +27,7 @@ above that layer (app shell, widgets, domain components).
 |---|---|---|
 | `--color-curie-fg` | `#0B0F1A` | Primary text |
 | `--color-curie-fg-secondary` | `#4B5563` | Secondary text |
-| `--color-curie-fg-muted` | `#9AA3B2` | Muted text, placeholders |
+| `--color-curie-fg-muted` | `#636F82` | Muted text, placeholders (darkened from the mockup's `#9AA3B2` for WCAG AA 4.5:1) |
 | `--color-curie-fg-on-ink` | `#FFFFFF` | Text on dark surfaces |
 | `--color-curie-fg-on-brand` | `#FFFFFF` | Text on brand surfaces |
 
@@ -43,12 +43,15 @@ above that layer (app shell, widgets, domain components).
 
 ### Semantic
 
+Non-soft tokens are text colors, darkened one shade from the mockup values so
+small text meets WCAG AA 4.5:1 on white and on the paired soft tints.
+
 | Token | Value | Pairs with |
 |---|---|---|
-| `--color-curie-success` | `#16A34A` | `--color-curie-success-soft` `#DCFCE7` |
-| `--color-curie-warning` | `#D97706` | `--color-curie-warning-soft` `#FEF3C7` |
-| `--color-curie-danger` | `#DC2626` | `--color-curie-danger-soft` `#FEE2E2` |
-| `--color-curie-info` | `#0891B2` | `--color-curie-info-soft` `#CFFAFE` |
+| `--color-curie-success` | `#15803D` | `--color-curie-success-soft` `#DCFCE7` |
+| `--color-curie-warning` | `#B45309` | `--color-curie-warning-soft` `#FEF3C7` |
+| `--color-curie-danger` | `#B91C1C` | `--color-curie-danger-soft` `#FEE2E2` |
+| `--color-curie-info` | `#0E7490` | `--color-curie-info-soft` `#CFFAFE` |
 
 ### Borders
 

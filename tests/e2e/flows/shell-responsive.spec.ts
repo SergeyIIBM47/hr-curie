@@ -4,6 +4,7 @@ test.describe("Dashboard shell responsive behavior", () => {
   test("uses the expected desktop, tablet, and mobile shell columns", async ({
     adminPage: page,
   }) => {
+    test.setTimeout(120_000); // four navigations per test is slow on Firefox
     const cases = [
       { width: 1440, firstColumn: 240, columnCount: 3 },
       { width: 1024, firstColumn: 240, columnCount: 2 },
@@ -13,17 +14,26 @@ test.describe("Dashboard shell responsive behavior", () => {
 
     for (const item of cases) {
       await page.setViewportSize({ width: item.width, height: 900 });
-      await page.goto("/");
+      // Firefox's "load" event can starve on dev-server streaming
+      await page.goto("/", { waitUntil: "domcontentloaded" });
 
-      const columns = await page
-        .locator('[data-shell="app"] > div')
-        .evaluate((element) =>
-          getComputedStyle(element)
-            .gridTemplateColumns.split(" ")
-            .map((column) => Number.parseFloat(column)),
-        );
+      const readColumns = () =>
+        page
+          .locator('[data-shell="app"] > div')
+          .evaluate((element) =>
+            getComputedStyle(element)
+              .gridTemplateColumns.split(" ")
+              .map((column) => Number.parseFloat(column)),
+          );
 
-      expect(columns).toHaveLength(item.columnCount);
+      // Poll: domcontentloaded can fire before the stylesheet applies
+      await expect
+        .poll(async () => (await readColumns()).length, {
+          message: `shell columns at ${item.width}px`,
+          timeout: 10_000,
+        })
+        .toBe(item.columnCount);
+      const columns = await readColumns();
       expect(columns[0]).toBeCloseTo(item.firstColumn, 0);
     }
   });

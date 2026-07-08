@@ -1,5 +1,8 @@
 import { test, expect } from "../fixtures/auth";
 
+// Desktop table flow — the mobile list UI is covered in employee-list.spec.ts
+test.skip(({ isMobile }) => isMobile, "desktop-only flow");
+
 // Use a unique suffix per test to avoid collisions
 function uniqueEmail(): string {
   return `create-${Date.now()}@company.com`;

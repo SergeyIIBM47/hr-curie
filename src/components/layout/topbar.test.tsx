@@ -1,6 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { Topbar } from "./topbar";
 import type { Role } from "@prisma/client";
 
@@ -85,5 +87,18 @@ describe("Topbar", () => {
     render(<Topbar user={testUser} counts={counts} />);
     const current = screen.getByText("employees");
     expect(current).toHaveAttribute("aria-current", "page");
+  });
+
+  it("renders the sign-out button with an accessible name", () => {
+    vi.mocked(usePathname).mockReturnValue("/");
+    render(<Topbar user={testUser} counts={counts} />);
+    expect(screen.getByLabelText("Sign out")).toBeInTheDocument();
+  });
+
+  it("calls signOut when the sign-out button is clicked", async () => {
+    vi.mocked(usePathname).mockReturnValue("/");
+    render(<Topbar user={testUser} counts={counts} />);
+    await userEvent.click(screen.getByLabelText("Sign out"));
+    expect(signOut).toHaveBeenCalledWith({ callbackUrl: "/login" });
   });
 });

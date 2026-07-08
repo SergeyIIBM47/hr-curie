@@ -1,6 +1,9 @@
 import { test, expect } from "../fixtures/auth";
 
 test.describe("Employee list", () => {
+  // Desktop table UI — the card layout is covered by the mobile suite below
+  test.skip(({ isMobile }) => isMobile, "desktop-only table UI");
+
   test("admin sees employee table with columns", async ({
     adminPage: page,
   }) => {
@@ -9,7 +12,7 @@ test.describe("Employee list", () => {
     const table = page.getByRole("table");
     await expect(table).toBeVisible();
 
-    for (const col of ["Name", "Email", "Role", "Department", "Employment Type"]) {
+    for (const col of ["Name", "Department", "Employment Type", "Role"]) {
       await expect(table.getByText(col)).toBeVisible();
     }
 
@@ -81,9 +84,9 @@ test.describe("Employee list — mobile", () => {
     // Table hidden on mobile
     await expect(page.getByRole("table")).not.toBeVisible();
 
-    // Cards visible — find the card link containing the admin email
+    // Cards visible — find the card link with the admin's name
     await expect(
-      page.getByRole("link").filter({ hasText: "sofia@company.com" }),
+      page.getByRole("link").filter({ hasText: "Sofia Admin" }),
     ).toBeVisible();
   });
 
@@ -91,10 +94,10 @@ test.describe("Employee list — mobile", () => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto("/employees");
 
-    // Click on the card link containing the admin email
+    // Click on the card link with the admin's name
     await page
       .getByRole("link")
-      .filter({ hasText: "sofia@company.com" })
+      .filter({ hasText: "Sofia Admin" })
       .click();
     await expect(page).toHaveURL(/\/employees\/.+/);
   });

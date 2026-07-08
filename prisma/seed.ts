@@ -25,7 +25,7 @@ function daysFromNow(days: number): Date {
 }
 
 async function main() {
-  const defaultTypes = ["CY", "GIG", "Contractor"];
+  const defaultTypes = ["CY", "GIG", "Contractor", "Intern"];
   for (const name of defaultTypes) {
     await prisma.employmentType.upsert({
       where: { name },
@@ -36,6 +36,15 @@ async function main() {
 
   const cyType = await prisma.employmentType.findUniqueOrThrow({
     where: { name: "CY" },
+  });
+  const gigType = await prisma.employmentType.findUniqueOrThrow({
+    where: { name: "GIG" },
+  });
+  const contractorType = await prisma.employmentType.findUniqueOrThrow({
+    where: { name: "Contractor" },
+  });
+  const internType = await prisma.employmentType.findUniqueOrThrow({
+    where: { name: "Intern" },
   });
 
   let adminUser = await prisma.user.findUnique({
@@ -88,7 +97,7 @@ async function main() {
           create: {
             firstName: "Lina",
             lastName: "Okafor",
-            employmentTypeId: cyType.id,
+            employmentTypeId: contractorType.id,
             workEmail: "lina.okafor@company.com",
             dateOfBirth: new Date("1992-05-12"),
             actualResidence: "Lagos, NG",
@@ -123,6 +132,62 @@ async function main() {
             startYear: today.getUTCFullYear(),
             startDate: daysFromNow(-3),
             position: "Software Engineer",
+            department: "Engineering",
+          },
+        },
+      },
+    });
+  }
+
+  // --- Emma (GIG) + Tomas (Intern): keep all 4 employment types populated
+  // so the overview workforce donut renders 4 slices ---
+  const emmaUser = await prisma.user.findUnique({
+    where: { email: "emma.fischer@company.com" },
+  });
+  if (!emmaUser) {
+    await prisma.user.create({
+      data: {
+        email: "emma.fischer@company.com",
+        passwordHash: await bcrypt.hash("qwerty123#", 12),
+        role: Role.EMPLOYEE,
+        employee: {
+          create: {
+            firstName: "Emma",
+            lastName: "Fischer",
+            employmentTypeId: gigType.id,
+            workEmail: "emma.fischer@company.com",
+            dateOfBirth: new Date("1994-11-23"),
+            actualResidence: "Vienna, AT",
+            startYear: 2025,
+            startDate: new Date("2025-03-03"),
+            position: "Marketing Specialist",
+            department: "Marketing",
+          },
+        },
+      },
+    });
+  }
+
+  const tomasUser = await prisma.user.findUnique({
+    where: { email: "tomas.marek@company.com" },
+  });
+  if (!tomasUser) {
+    await prisma.user.create({
+      data: {
+        email: "tomas.marek@company.com",
+        passwordHash: await bcrypt.hash("qwerty123#", 12),
+        role: Role.EMPLOYEE,
+        employee: {
+          create: {
+            firstName: "Tomas",
+            lastName: "Marek",
+            employmentTypeId: internType.id,
+            workEmail: "tomas.marek@company.com",
+            dateOfBirth: new Date("2002-02-17"),
+            actualResidence: "Prague, CZ",
+            startYear: today.getUTCFullYear(),
+            startDate: daysFromNow(-30),
+            position: "Engineering Intern",
             department: "Engineering",
           },
         },

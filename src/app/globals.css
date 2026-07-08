@@ -70,7 +70,9 @@
   /* ── Foreground ── */
   --color-curie-fg:             #0B0F1A;
   --color-curie-fg-secondary:   #4B5563;
-  --color-curie-fg-muted:       #9AA3B2;
+  /* Darkened from the mockup's #9AA3B2 (2.6:1) to meet WCAG AA 4.5:1
+     for small muted text on --color-curie-bg and white surfaces. */
+  --color-curie-fg-muted:       #636F82;
   --color-curie-fg-on-ink:      #FFFFFF;
   --color-curie-fg-on-brand:    #FFFFFF;
 
@@ -81,14 +83,16 @@
   --color-curie-brand-wash:     #EEF4FF;
   --color-curie-brand-ink:      #1E3A8A;
 
-  /* ── Semantic ── */
-  --color-curie-success:        #16A34A;
+  /* ── Semantic ──
+     Non-soft tokens are text colors; darkened one shade from the mockup
+     values so small text meets WCAG AA 4.5:1 on white and the soft tints. */
+  --color-curie-success:        #15803D;
   --color-curie-success-soft:   #DCFCE7;
-  --color-curie-warning:        #D97706;
+  --color-curie-warning:        #B45309;
   --color-curie-warning-soft:   #FEF3C7;
-  --color-curie-danger:         #DC2626;
+  --color-curie-danger:         #B91C1C;
   --color-curie-danger-soft:    #FEE2E2;
-  --color-curie-info:           #0891B2;
+  --color-curie-info:           #0E7490;
   --color-curie-info-soft:      #CFFAFE;
 
   /* ── Borders ── */
@@ -209,9 +213,9 @@
     @apply font-sans;
   }
 
-  /* ── Focus-visible ring (Apple HIG: 2px blue, offset 2px) ───── */
+  /* ── Focus-visible ring (Cobalt brand: 2px, offset 2px) ─────── */
   :focus-visible {
-    outline: 2px solid #007AFF;
+    outline: 2px solid var(--color-curie-brand);
     outline-offset: 2px;
   }
 

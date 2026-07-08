@@ -1,5 +1,8 @@
 import { test, expect } from "../fixtures/auth";
 
+// Desktop table flow — the mobile list UI is covered in employee-list.spec.ts
+test.skip(({ isMobile }) => isMobile, "desktop-only flow");
+
 test.describe("Employee profile view", () => {
   test("admin sees employee profile with detail fields", async ({
     adminPage: page,
@@ -16,8 +19,8 @@ test.describe("Employee profile view", () => {
       main.getByRole("heading", { name: "Sofia Admin" }),
     ).toBeVisible();
 
-    // Initials avatar
-    const avatar = main.locator(".size-\\[96px\\]");
+    // Initials avatar (Curie Avatar primitive, lg on the profile header)
+    const avatar = main.locator('[data-curie="avatar"][data-size="lg"]');
     await expect(avatar.getByText("SA")).toBeVisible();
 
     // Position

@@ -1,7 +1,8 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Bell, Search } from "lucide-react";
+import { signOut } from "next-auth/react";
+import { Bell, LogOut, Search } from "lucide-react";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { cn } from "@/lib/utils";
 import type { Role } from "@prisma/client";
@@ -115,6 +116,7 @@ export function Topbar({ user, counts, hasNotifications = true }: TopbarProps) {
           aria-label="Search (coming soon)"
           aria-disabled="true"
           disabled
+          tabIndex={-1}
           className={cn(`
             grid h-9 w-9 place-items-center
             rounded-[var(--radius-curie-pill)]
@@ -149,6 +151,23 @@ export function Topbar({ user, counts, hasNotifications = true }: TopbarProps) {
               `)}
             />
           ) : null}
+        </button>
+
+        {/* Sign out — below md it lives in the mobile nav sheet instead */}
+        <button
+          type="button"
+          aria-label="Sign out"
+          onClick={() => void signOut({ callbackUrl: "/login" })}
+          className={cn(`
+            hidden h-9 w-9 place-items-center
+            rounded-[var(--radius-curie-pill)]
+            text-[var(--color-curie-fg-secondary)]
+            transition-colors
+            hover:bg-[var(--color-curie-surface)]
+            md:grid
+          `)}
+        >
+          <LogOut className="size-4" strokeWidth={1.5} aria-hidden="true" />
         </button>
       </div>
     </header>
