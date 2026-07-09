@@ -7,6 +7,7 @@ import { EmployeeCard } from "@/components/employees/employee-card";
 import { Btn, IPlus } from "@/components/curie";
 import { cn } from "@/lib/utils";
 import type { EmployeeListItem } from "@/types/employee";
+import { buildEmployeeWhere } from "./employee-list-query";
 
 const employeeSelect = {
   id: true,
@@ -21,7 +22,7 @@ const employeeSelect = {
 } as const;
 
 interface EmployeesPageProps {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; team?: string; view?: string }>;
 }
 
 export default async function EmployeesPage({
@@ -29,20 +30,8 @@ export default async function EmployeesPage({
 }: EmployeesPageProps) {
   await requireAuth("ADMIN");
 
-  const { q } = await searchParams;
-  const query = q?.trim() ?? "";
-
-  const where = query
-    ? {
-        OR: [
-          { firstName: { contains: query, mode: "insensitive" as const } },
-          { lastName: { contains: query, mode: "insensitive" as const } },
-          { workEmail: { contains: query, mode: "insensitive" as const } },
-          { position: { contains: query, mode: "insensitive" as const } },
-          { department: { contains: query, mode: "insensitive" as const } },
-        ],
-      }
-    : {};
+  const { q, team, view } = await searchParams;
+  const where = buildEmployeeWhere({ q, team, view });
 
   const employees: EmployeeListItem[] = await prisma.employee.findMany({
     where,

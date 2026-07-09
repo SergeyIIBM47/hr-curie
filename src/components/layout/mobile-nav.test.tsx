@@ -167,10 +167,12 @@ describe("MobileNav", () => {
 
     const employeesLink = (await screen.findByText("Employees")).closest("a")!;
     const engineeringLink = screen.getByText("Engineering team").closest("a")!;
-    const hiringLink = screen.getByText("Q2 hiring plan").closest("a")!;
+    const onboardingLink = screen
+      .getByText("Onboarding pipeline")
+      .closest("a")!;
 
     expect(employeesLink).not.toHaveAttribute("aria-current");
     expect(engineeringLink).toHaveAttribute("aria-current", "page");
-    expect(hiringLink).not.toHaveAttribute("aria-current");
+    expect(onboardingLink).not.toHaveAttribute("aria-current");
   });
 });

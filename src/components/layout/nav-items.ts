@@ -62,13 +62,6 @@ export const favoritesItems: NavItem[] = [
     adminOnly: true,
   },
   {
-    label: "Q2 hiring plan",
-    href: "/employees?view=hiring",
-    icon: Star,
-    section: "favorites",
-    adminOnly: true,
-  },
-  {
     label: "Onboarding pipeline",
     href: "/employees?view=onboarding",
     icon: Star,

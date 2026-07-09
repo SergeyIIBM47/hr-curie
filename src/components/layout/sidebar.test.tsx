@@ -122,7 +122,7 @@ describe("Sidebar", () => {
     it("hides admin-only favorites", () => {
       render(<Sidebar user={employeeUser} counts={counts} />);
       expect(screen.queryByText("Engineering team")).not.toBeInTheDocument();
-      expect(screen.queryByText("Q2 hiring plan")).not.toBeInTheDocument();
+      expect(screen.queryByText("Onboarding pipeline")).not.toBeInTheDocument();
       expect(screen.queryByText("Favorites")).not.toBeInTheDocument();
     });
   });
@@ -191,11 +191,13 @@ describe("Sidebar", () => {
 
       const employeesLink = screen.getByText("Employees").closest("a")!;
       const engineeringLink = screen.getByText("Engineering team").closest("a")!;
-      const hiringLink = screen.getByText("Q2 hiring plan").closest("a")!;
+      const onboardingLink = screen
+        .getByText("Onboarding pipeline")
+        .closest("a")!;
 
       expect(employeesLink).not.toHaveAttribute("aria-current");
       expect(engineeringLink).toHaveAttribute("aria-current", "page");
-      expect(hiringLink).not.toHaveAttribute("aria-current");
+      expect(onboardingLink).not.toHaveAttribute("aria-current");
     });
   });
 });
