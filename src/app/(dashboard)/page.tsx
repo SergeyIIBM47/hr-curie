@@ -15,7 +15,6 @@ import {
   WorkforceCompositionDonut,
   Btn,
   Pill,
-  IDoc,
   IPlus,
   ILeave,
   ICal,
@@ -25,6 +24,8 @@ import {
   type OnboardingTrackerData,
 } from "@/components/curie";
 import { TimeOffThisWeekCard } from "@/components/curie/time-off-this-week-card";
+import { ExportReportButton } from "./export-report-button";
+import { buildOverviewCsv, overviewCsvFilename } from "./overview-report";
 import { OnboardingTrackerCard } from "@/components/curie/onboarding-tracker-card";
 import { NoticeBoardCard } from "@/components/curie/notice-board-card";
 import { cn } from "@/lib/utils";
@@ -72,12 +73,15 @@ function AdminOverviewView({ data }: { data: AdminOverview }) {
       <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <PageGreeting name={firstName} date={today} />
         <div className="flex flex-wrap items-center gap-2.5">
-          <Btn variant="secondary" icon={IDoc}>
-            Export report
-          </Btn>
-          <Btn variant="primary" icon={IPlus}>
-            New request
-          </Btn>
+          <ExportReportButton
+            csv={buildOverviewCsv(data)}
+            filename={overviewCsvFilename(today)}
+          />
+          <Link href="/leave/request">
+            <Btn variant="primary" icon={IPlus}>
+              New request
+            </Btn>
+          </Link>
         </div>
       </header>
 
