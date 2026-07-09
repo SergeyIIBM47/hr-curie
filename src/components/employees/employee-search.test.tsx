@@ -77,7 +77,7 @@ describe("EmployeeSearch", () => {
 
   it("removes q param when input is cleared", async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-    render(<EmployeeSearch />);
+    const { rerender } = render(<EmployeeSearch />);
     mockReplace.mockClear();
 
     const input = screen.getByPlaceholderText("Search employees...");
@@ -87,6 +87,14 @@ describe("EmployeeSearch", () => {
       vi.advanceTimersByTime(300);
     });
 
+    // Reflect the navigation in the mocked URL, as the real router would
+    vi.mocked(useSearchParams).mockReturnValue(
+      new URLSearchParams("q=test") as unknown as ReturnType<
+        typeof useSearchParams
+      >,
+    );
+    rerender(<EmployeeSearch />);
+
     await user.clear(input);
 
     await act(async () => {
@@ -95,6 +103,41 @@ describe("EmployeeSearch", () => {
 
     const lastCall = mockReplace.mock.calls[mockReplace.mock.calls.length - 1];
     expect(lastCall[0]).not.toContain("q=");
+  });
+
+  it("does not navigate on mount when the URL already matches", () => {
+    vi.mocked(useSearchParams).mockReturnValue(
+      new URLSearchParams("view=onboarding") as unknown as ReturnType<
+        typeof useSearchParams
+      >,
+    );
+    render(<EmployeeSearch />);
+
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it("does not navigate again when searchParams identity changes but content is the same", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const { rerender } = render(<EmployeeSearch />);
+
+    await user.type(screen.getByPlaceholderText("Search employees..."), "abc");
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(mockReplace).toHaveBeenCalledTimes(1);
+
+    // Simulate the router round-trip: same URL content, new object identity
+    vi.mocked(useSearchParams).mockReturnValue(
+      new URLSearchParams("q=abc") as unknown as ReturnType<
+        typeof useSearchParams
+      >,
+    );
+    rerender(<EmployeeSearch />);
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(mockReplace).toHaveBeenCalledTimes(1);
   });
 
   it("initialises from existing search param", () => {

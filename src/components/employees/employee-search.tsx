@@ -18,7 +18,12 @@ export function EmployeeSearch() {
     } else {
       params.delete("q");
     }
-    router.replace(`/employees?${params.toString()}`);
+    const next = params.toString();
+    // Bail out when the URL wouldn't change: router.replace() triggers a
+    // server round-trip that yields a new searchParams identity, so an
+    // unconditional replace re-runs this effect forever.
+    if (next === searchParams.toString()) return;
+    router.replace(next ? `/employees?${next}` : "/employees");
   }, [debouncedQuery, router, searchParams]);
 
   return (
